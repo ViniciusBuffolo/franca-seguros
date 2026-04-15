@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("QuoteMapper.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c70b6f5de952c8baacbd9aa7a1b41c835b988589")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c754ecf53613607718bc17f3d976c69f981b83ed")]
 [assembly: System.Reflection.AssemblyProductAttribute("QuoteMapper.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("QuoteMapper.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
