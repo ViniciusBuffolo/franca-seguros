@@ -1,0 +1,433 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <title>Cotação de Seguro</title>
+    <style>
+        /* --------------------------------------------
+           A4 print layout
+           -------------------------------------------- */
+        @page {
+            size: A4;
+            margin: 10mm;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            color: #111827;
+            background: #ffffff;
+            font-size: 12px;
+            line-height: 1.35;
+        }
+
+        body {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            padding: 0;
+        }
+
+        .page {
+            width: 100%;
+            padding: 6mm 6mm 4mm 6mm;
+        }
+
+        .top-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+
+        .logo-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            align-items: center;
+            margin-bottom: 16px;
+            border-bottom: 2px solid #0f766e;
+            padding-bottom: 8px;
+        }
+
+        .logo-left,
+        .logo-center,
+        .logo-right {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo-left {
+            justify-content: flex-start;
+        }
+
+        .logo-center {
+            justify-content: center;
+        }
+
+        .logo-right {
+            justify-content: flex-end;
+        }
+
+            .logo-left img,
+            .logo-center img,
+            .logo-right img {
+                max-height: 54px;
+                object-fit: contain;
+                display: block;
+            }
+
+        .main-title {
+            text-align: center;
+            margin-bottom: 6px;
+        }
+
+            .main-title h1 {
+                margin: 0;
+                font-size: 20px;
+                letter-spacing: 0.3px;
+            }
+
+        .subtitle {
+            text-align: center;
+            margin-bottom: 18px;
+            font-size: 14px;
+            color: #374151;
+            font-weight: 600;
+        }
+
+        .card {
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 12px;
+        }
+
+        .section-title {
+            margin: 0 0 8px 0;
+            font-size: 14px;
+            color: #0f766e;
+            border-bottom: 1px solid #d1d5db;
+            padding-bottom: 4px;
+            font-weight: 700;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px 20px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .label {
+            font-size: 11px;
+            color: #6b7280;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .value {
+            font-size: 12px;
+            font-weight: 600;
+            min-height: 16px;
+        }
+
+        .coverage-values {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px 24px;
+            margin-top: 8px;
+        }
+
+        .coverage-value {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px dashed #d1d5db;
+            padding: 4px 0;
+            gap: 12px;
+        }
+
+            .coverage-value .left {
+                font-weight: 700;
+            }
+
+            .coverage-value .right {
+                font-weight: 700;
+            }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .payment-table th,
+        .payment-table td {
+            border: 1px solid #d1d5db;
+            padding: 6px 8px;
+            text-align: center;
+            font-size: 11px;
+        }
+
+        .payment-table thead th {
+            background: #0f766e;
+            color: #ffffff;
+            font-weight: 700;
+        }
+
+        .payment-table tbody tr:nth-child(even) {
+            background: #f9fafb;
+        }
+
+        .payment-table .payment-label {
+            font-weight: 700;
+            text-align: left;
+        }
+
+        .note {
+            margin-top: 6px;
+            font-size: 10px;
+            color: #4b5563;
+        }
+
+        .footer-contact {
+            margin-top: 16px;
+            text-align: center;
+            font-size: 12px;
+            border-top: 1px solid #d1d5db;
+            padding-top: 10px;
+        }
+
+            .footer-contact .name {
+                font-weight: 700;
+                font-size: 13px;
+                margin-bottom: 4px;
+            }
+
+        .muted {
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+
+        <div class="top-meta">
+            <div>{{ISSUE_DATE}}</div>
+            <div>{{CITY}}</div>
+        </div>
+
+        <div class="logo-row">
+            <div class="logo-left">
+                <img src="{{LOGO_ALLIANZ_URL}}" alt="Allianz" />
+            </div>
+
+            <div class="logo-center">
+                <img src="{{LOGO_CORRETORA_URL}}" alt="Corretora de Seguros" />
+            </div>
+
+            <div class="logo-right">
+                <img src="{{LOGO_FRANCA_URL}}" alt="Franca Seguros" />
+            </div>
+        </div>
+
+        <div class="main-title">
+            <h1>SEGURO COMPREENSIVO - FIPE 100%</h1>
+        </div>
+        <div class="subtitle">Colisão, Incêndio e Roubo</div>
+
+        <div class="card">
+            <h2 class="section-title">Dados principais</h2>
+            <div class="grid-2">
+                <div class="field">
+                    <div class="label">Proponente</div>
+                    <div class="value">{{PROPONENTE}}</div>
+                </div>
+                <div class="field">
+                    <div class="label">Tabela FIPE</div>
+                    <div class="value">{{FIPE_VALUE}}</div>
+                </div>
+                <div class="field">
+                    <div class="label">Veículo</div>
+                    <div class="value">{{VEHICLE}}</div>
+                </div>
+                <div class="field">
+                    <div class="label">Placa</div>
+                    <div class="value">{{PLATE}}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="section-title">Coberturas</h2>
+
+            <div class="coverage-values">
+                <div class="coverage-value">
+                    <span class="left">Danos Materiais</span>
+                    <span class="right">{{DANOS_MATERIAIS}}</span>
+                </div>
+
+                <div class="coverage-value">
+                    <span class="left">Danos Corporais</span>
+                    <span class="right">{{DANOS_CORPORAIS}}</span>
+                </div>
+
+                <div class="coverage-value">
+                    <span class="left">Danos Morais</span>
+                    <span class="right">{{DANOS_MORAIS}}</span>
+                </div>
+
+                <div class="coverage-value">
+                    <span class="left">APP - Morte</span>
+                    <span class="right">{{APP_MORTE}}</span>
+                </div>
+
+                <div class="coverage-value">
+                    <span class="left">APP - Invalidez Permanente</span>
+                    <span class="right">{{APP_INVALIDEZ}}</span>
+                </div>
+            </div>
+
+            <div style="margin-top:12px;" class="grid-2">
+                <div class="field">
+                    <div class="label">Assistência Guincho</div>
+                    <div class="value">{{ASSISTENCIA_GUINCHO}}</div>
+                </div>
+                <div class="field">
+                    <div class="label">Carro reserva</div>
+                    <div class="value">{{CARRO_RESERVA}}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="section-title">Franquias</h2>
+            <div class="grid-2">
+                <div class="field">
+                    <div class="label">Franquia Para-brisa</div>
+                    <div class="value">{{FRANQUIA_PARABRISA}}</div>
+                </div>
+                <div class="field">
+                    <div class="label">Franquia Vidro Lateral</div>
+                    <div class="value">{{FRANQUIA_VIDRO_LATERAL}}</div>
+                </div>
+
+                <div class="field">
+                    <div class="label">Franquia Farol Convencional</div>
+                    <div class="value">{{FRANQUIA_FAROL_CONVENCIONAL}}</div>
+                </div>
+                <div class="field">
+                    <div class="label">Franquia Lanterna Convencional</div>
+                    <div class="value">{{FRANQUIA_LANTERNA_CONVENCIONAL}}</div>
+                </div>
+
+                <div class="field">
+                    <div class="label">Franquia Farol Xenon/Led</div>
+                    <div class="value">{{FRANQUIA_FAROL_XENON_LED}}</div>
+                </div>
+                <div class="field">
+                    <div class="label">Franquia Lanterna Led</div>
+                    <div class="value">{{FRANQUIA_LANTERNA_LED}}</div>
+                </div>
+
+                <div class="field">
+                    <div class="label">Franquia Retrovisor Externo</div>
+                    <div class="value">{{FRANQUIA_RETROVISOR}}</div>
+                </div>
+                <div class="field">
+                    <div class="label">Franquia Lanterna Auxiliar</div>
+                    <div class="value">{{FRANQUIA_LANTERNA_AUXILIAR}}</div>
+                </div>
+
+                <div class="field">
+                    <div class="label">Franquia Proteção Pneu e Roda</div>
+                    <div class="value">{{FRANQUIA_PNEU_RODA}}</div>
+                </div>
+                <div class="field">
+                    <div class="label">Franquia Pequenos Reparos</div>
+                    <div class="value">{{FRANQUIA_PEQUENOS_REPAROS}}</div>
+                </div>
+            </div>
+
+            <div style="margin-top:12px;">
+                <div class="field">
+                    <div class="label">Franquia do Veículo</div>
+                    <div class="value">{{FRANQUIA_VEICULO}}</div>
+                </div>
+                <div class="note">
+                    {{TIPO_FRANQUIA_VEICULO}} — Participação obrigatória em caso de sinistro de perda parcial.
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="section-title">Condutor principal</h2>
+            <div class="grid-2">
+                <div class="field">
+                    <div class="label">Principal Condutor</div>
+                    <div class="value">{{CONDUTOR_PRINCIPAL}}</div>
+                </div>
+                <div class="field">
+                    <div class="label">Uso do Veículo</div>
+                    <div class="value">{{USO_VEICULO}}</div>
+                </div>
+
+                <div class="field">
+                    <div class="label">Estado Civil</div>
+                    <div class="value">{{ESTADO_CIVIL}}</div>
+                </div>
+                <div class="field">
+                    <div class="label">CEP de Pernoite</div>
+                    <div class="value">{{CEP_PERNOITE}}</div>
+                </div>
+
+                <div class="field">
+                    <div class="label">Reside em</div>
+                    <div class="value">{{RESIDE_EM}}</div>
+                </div>
+                <div class="field">
+                    <div class="label">Reside com pessoas entre 18 a 25 anos?</div>
+                    <div class="value">{{CONDUTORES_18_25}}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="section-title">Formas de pagamento</h2>
+
+            <table class="payment-table">
+                <thead>
+                    <tr>
+                        <th>Parcela</th>
+                        <th>Carnê</th>
+                        <th>Cartão de Crédito</th>
+                        <th>Débito em Conta</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{PAYMENT_ROWS}}
+                </tbody>
+            </table>
+
+            <div class="note">
+                Condição de pagamento com preço de à vista em destaque.
+            </div>
+        </div>
+
+        <div class="footer-contact">
+            <div class="name">{{BROKER_CONTACT_NAME}}</div>
+            <div>{{BROKER_CONTACT_PHONE}}</div>
+            <div>{{BROKER_CONTACT_EMAIL}}</div>
+        </div>
+    </div>
+</body>
+</html>

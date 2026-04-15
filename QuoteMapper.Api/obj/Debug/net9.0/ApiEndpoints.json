@@ -1,0 +1,59 @@
+[
+  {
+    "ContainingType": "QuoteMapper.Api.Controllers.QuoteController",
+    "Method": "RenderHtml",
+    "RelativePath": "api/Quote/render-html",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "QuoteMapper.Api.Dtos.GenerateQuoteDocumentRequestDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "QuoteMapper.Api.Controllers.QuoteController",
+    "Method": "Upload",
+    "RelativePath": "api/Quote/upload",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "File",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
+      },
+      {
+        "Name": "InsurerHint",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "QuoteMapper.Api.Controllers.TestController",
+    "Method": "Hello",
+    "RelativePath": "api/Test/hello",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "QuoteMapper.Api.Controllers.TestController",
+    "Method": "Ping",
+    "RelativePath": "api/Test/ping",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  }
+]
