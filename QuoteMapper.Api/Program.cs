@@ -26,13 +26,12 @@ builder.Services.AddScoped<IQuoteHtmlTemplateService, QuoteHtmlTemplateService>(
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
-app.UseHttpsRedirection();
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "QuoteMapper API V1");
+    c.RoutePrefix = "swagger";
+});
 
 app.UseDefaultFiles();
 app.UseStaticFiles();
