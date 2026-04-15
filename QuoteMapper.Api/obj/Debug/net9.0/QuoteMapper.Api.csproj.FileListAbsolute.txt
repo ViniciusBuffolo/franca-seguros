@@ -70,3 +70,4 @@ C:\Dev\Franca_Seguros\Backend\QuoteMapper.Api\bin\Debug\net9.0\Templates\Logos\s
 C:\Dev\Franca_Seguros\Backend\QuoteMapper.Api\bin\Debug\net9.0\Templates\Logos\tokio-marine-seguradora.svg
 C:\Dev\Franca_Seguros\Backend\QuoteMapper.Api\bin\Debug\net9.0\Templates\Logos\Yelum.svg
 C:\Dev\Franca_Seguros\Backend\QuoteMapper.Api\bin\Debug\net9.0\Templates\Logos\zurich.svg
+C:\Dev\Franca_Seguros\Backend\QuoteMapper.Api\obj\Debug\net9.0\QuoteMapper.Api.sourcelink.json
