@@ -1,10 +1,52 @@
 {
   "openapi": "3.0.1",
   "info": {
-    "title": "QuoteMapper.Api",
-    "version": "1.0"
+    "title": "QuoteMapper API",
+    "version": "v1"
   },
   "paths": {
+    "/api/pdf-extraction/extract-template-html": {
+      "post": {
+        "tags": [
+          "PdfExtraction"
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "CoverageType",
+                  "File"
+                ],
+                "type": "object",
+                "properties": {
+                  "File": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "CoverageType": {
+                    "$ref": "#/components/schemas/CoverageType"
+                  }
+                }
+              },
+              "encoding": {
+                "File": {
+                  "style": "form"
+                },
+                "CoverageType": {
+                  "style": "form"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
     "/api/Quote/upload": {
       "post": {
         "tags": [
@@ -74,11 +116,37 @@
         }
       }
     },
-    "/api/Test/ping": {
-      "get": {
+    "/api/Quote/upload-render-html": {
+      "post": {
         "tags": [
-          "Test"
+          "Quote"
         ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "File": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "InsurerHint": {
+                    "type": "string"
+                  }
+                }
+              },
+              "encoding": {
+                "File": {
+                  "style": "form"
+                },
+                "InsurerHint": {
+                  "style": "form"
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Success"
@@ -86,11 +154,31 @@
         }
       }
     },
-    "/api/Test/hello": {
-      "get": {
+    "/api/Quote/process-pdf": {
+      "post": {
         "tags": [
-          "Test"
+          "Quote"
         ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              },
+              "encoding": {
+                "file": {
+                  "style": "form"
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Success"
@@ -200,6 +288,17 @@
           }
         },
         "additionalProperties": false
+      },
+      "CoverageType": {
+        "enum": [
+          "RouboEFurto",
+          "Basico",
+          "Ampliado",
+          "Completo",
+          "Master",
+          "Exclusivo"
+        ],
+        "type": "string"
       },
       "DeductibleData": {
         "type": "object",

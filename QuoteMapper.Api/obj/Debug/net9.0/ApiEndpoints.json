@@ -1,5 +1,42 @@
 [
   {
+    "ContainingType": "MyPdfApi.Controllers.PdfExtractionController",
+    "Method": "ExtractTemplateHtml",
+    "RelativePath": "api/pdf-extraction/extract-template-html",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "File",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
+      },
+      {
+        "Name": "CoverageType",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "QuoteMapper.Api.Controllers.QuoteController",
+    "Method": "ProcessQuote",
+    "RelativePath": "api/Quote/process-pdf",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "file",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "QuoteMapper.Api.Controllers.QuoteController",
     "Method": "RenderHtml",
     "RelativePath": "api/Quote/render-html",
@@ -37,23 +74,24 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "QuoteMapper.Api.Controllers.TestController",
-    "Method": "Hello",
-    "RelativePath": "api/Test/hello",
-    "HttpMethod": "GET",
+    "ContainingType": "QuoteMapper.Api.Controllers.QuoteController",
+    "Method": "UploadRenderHtml",
+    "RelativePath": "api/Quote/upload-render-html",
+    "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
-    "Parameters": [],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "QuoteMapper.Api.Controllers.TestController",
-    "Method": "Ping",
-    "RelativePath": "api/Test/ping",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [],
+    "Parameters": [
+      {
+        "Name": "File",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
+      },
+      {
+        "Name": "InsurerHint",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
     "ReturnTypes": []
   }
 ]
