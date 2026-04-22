@@ -64,7 +64,7 @@ public sealed class PdfExtractionController : ControllerBase
         var coverageTypeText = coverageType switch
         {
             CoverageType.RouboEFurto => "Roubo e Furto",
-            CoverageType.Basico => "Basico",
+            CoverageType.Basico => "Básico",
             CoverageType.Ampliado => "Ampliado",
             CoverageType.Completo => "Completo",
             CoverageType.Master => "Master",
@@ -73,111 +73,158 @@ public sealed class PdfExtractionController : ControllerBase
         };
 
         var template = """
-            Analise o documento PDF da cotação de seguro Allianz e retorne SOMENTE um JSON válido.
+        Analise o documento PDF da cotação de seguro Allianz e retorne SOMENTE um JSON válido.
 
-            O tipo de cobertura escolhido pelo usuário é: "__COVERAGE_TYPE__".
+        O tipo de cobertura escolhido pelo usuário é: "__COVERAGE_TYPE__".
 
-            Se o PDF contiver múltiplos planos, use SOMENTE a coluna/plano "__COVERAGE_TYPE__".
+        O PDF pode conter múltiplos planos, como:
+        - Roubo e Furto
+        - Básico
+        - Ampliado
+        - Completo
+        - Master
+        - Exclusivo
 
-            IMPORTANTE:
-            - Para os campos abaixo, extraia o valor da coluna "Limite Máximo de Indenização" do plano escolhido.
-            - NÃO use os valores da coluna "Preço por Cobertura" para preencher esses campos.
-            - "Preço por Cobertura" deve ser ignorado para:
-              danosMateriais
-              danosCorporais
-              danosMorais
-              appMorte
-              appInvalidez
-              assistenciaGuincho
-              carroReserva
-              franquiaParabrisa
-              franquiaVidroLateral
-              franquiaFarolConvencional
-              franquiaLanternaConvencional
-              franquiaFarolXenonLed
-              franquiaLanternaLed
-              franquiaRetrovisor
-              franquiaLanternaAuxiliar
-              franquiaPneuRoda
-              franquiaPequenosReparos
-              franquiaVeiculo
-              tipoFranquiaVeiculo
+        Use SOMENTE os dados do plano "__COVERAGE_TYPE__".
+        Ignore completamente os valores dos demais planos.
 
-            Regras de extração por campo:
-            - danosMateriais = valor do limite da linha "RCF - Danos Materiais"
-            - danosCorporais = valor do limite da linha "RCF - Danos Corporais"
-            - danosMorais = valor do limite da linha "RCF - Danos Morais e Estéticos" ou equivalente
-            - appMorte = valor do limite da linha "APP - Morte"
-            - appInvalidez = valor do limite da linha "APP - Invalidez Permanente"
-            - assistenciaGuincho = valor do benefício/limite da linha "Assistência 24 hs" ou "Guincho"
-            - carroReserva = valor do benefício/limite da linha "Carro Reserva"
-            - tipoFranquiaVeiculo = tipo da franquia do veículo, como Normal, Reduzida ou Majorada
-            - franquiaVeiculo = valor monetário da franquia do veículo
-            - paymentRows = tabela de pagamento, onde os valores podem vir das áreas de formas de pagamento do documento
+        REGRAS GERAIS:
+        - Leia todas as páginas do PDF.
+        - Retorne apenas JSON válido.
+        - Não escreva explicações.
+        - Não use markdown.
+        - Não use blocos de código.
+        - Não escreva nada antes ou depois do JSON.
+        - Se um campo não existir, retorne string vazia.
+        - Preserve os valores exatamente como aparecem no PDF, inclusive formato monetário, texto descritivo e percentuais.
 
-            Para campos como:
-            - assistência 24h
-            - guincho
-            - carro reserva
-            - tipo de carro reserva
+        REGRAS DE COBERTURA:
+        - Para os campos de cobertura abaixo, extraia SOMENTE o valor da coluna "Limite Máximo de Indenização" do plano "__COVERAGE_TYPE__".
+        - NÃO use os valores da coluna "Preço por Cobertura" para preencher esses campos.
 
-            use sempre o valor descritivo do benefício/plano do produto escolhido, e não o preço.
+        Campos que devem usar SOMENTE "Limite Máximo de Indenização" ou valor descritivo do benefício:
+        - danosMateriais
+        - danosCorporais
+        - danosMorais
+        - appMorte
+        - appInvalidez
+        - assistenciaGuincho
+        - carroReserva
+        - franquiaParabrisa
+        - franquiaVidroLateral
+        - franquiaFarolConvencional
+        - franquiaLanternaConvencional
+        - franquiaFarolXenonLed
+        - franquiaLanternaLed
+        - franquiaRetrovisor
+        - franquiaLanternaAuxiliar
+        - franquiaPneuRoda
+        - franquiaPequenosReparos
+        - franquiaVeiculo
+        - tipoFranquiaVeiculo
 
-            Não escreva explicações.
-            Não use markdown.
-            Não use blocos de código.
-            Não escreva texto antes ou depois do JSON.
+        REGRAS DE MAPEAMENTO DE COBERTURA:
+        - danosMateriais = valor da linha "RCF - Danos Materiais"
+        - danosCorporais = valor da linha "RCF - Danos Corporais"
+        - danosMorais = valor da linha "RCF - Danos Morais e Estéticos" ou equivalente
+        - appMorte = valor da linha "APP - Morte"
+        - appInvalidez = valor da linha "APP - Invalidez Permanente"
+        - assistenciaGuincho = usar o valor descritivo do benefício de assistência, como "Km Livre", "Km Ilimitado" ou equivalente, referente ao plano escolhido
+        - carroReserva = usar o valor descritivo do benefício do carro reserva do plano escolhido, como "15 Dias", podendo combinar com o tipo/modelo se isso estiver claramente indicado no PDF
+        - tipoFranquiaVeiculo = tipo textual da franquia do veículo, como "Normal", "50% da Normal", "Reduzida" ou "Majorada"
+        - franquiaVeiculo = valor monetário da franquia do veículo
 
-            Retorne exatamente nesta estrutura:
+        REGRAS ESPECÍFICAS PARA FORMAS DE PAGAMENTO:
+        - Procure a seção "OUTRAS FORMAS DE PAGAMENTO".
+        - Nessa seção existem 3 tabelas independentes:
+          1. Boleto Bancário
+          2. Débito em Conta
+          3. Cartão de Crédito
+        - Cada tabela possui:
+          - uma coluna "Parcelas"
+          - uma coluna "Juros" (IGNORAR)
+          - colunas de planos: Roubo e Furto, Básico, Ampliado, Completo, Master e Exclusivo
+        - Para preencher paymentRows, use SOMENTE a coluna do plano "__COVERAGE_TYPE__".
+        - Ignore completamente a coluna "Juros".
+        - NÃO retorne juros em nenhum campo.
+        - A coluna "carne" no JSON deve receber os valores da tabela "Boleto Bancário".
+        - A coluna "cartaoCredito" no JSON deve receber os valores da tabela "Cartão de Crédito".
+        - A coluna "debitoConta" no JSON deve receber os valores da tabela "Débito em Conta".
+        - Monte uma linha para cada quantidade de parcela encontrada.
+        - Una as tabelas pelo número da parcela.
+        - Se uma parcela existir em uma forma de pagamento e não existir em outra, preencha a que faltar com string vazia.
+        - Mantenha a parcela exatamente como aparece na tabela, por exemplo: "01", "02", "03", etc.
+        - Não invente valores.
+        - Não misture valores de outros planos.
 
+        EXEMPLO DE COMO MONTAR paymentRows:
+        Se o plano escolhido for "Master":
+        - pegue a coluna "Master" da tabela Boleto Bancário e salve em "carne"
+        - pegue a coluna "Master" da tabela Cartão de Crédito e salve em "cartaoCredito"
+        - pegue a coluna "Master" da tabela Débito em Conta e salve em "debitoConta"
+
+        REGRAS DE IDENTIFICAÇÃO DOS DADOS PRINCIPAIS:
+        - proponente = nome do segurado/proponente
+        - fipeValue = valor FIPE, se estiver explícito; se não estiver explícito, retornar string vazia
+        - vehicle = descrição do veículo
+        - plate = placa
+        - condutorPrincipal = nome do principal condutor
+        - usoVeiculo = finalidade de uso
+        - estadoCivil = estado civil
+        - cepPernoite = CEP de pernoite
+        - resideEm = residência do principal condutor
+        - condutores18a25 = resposta sobre condutores entre 18 e 25 anos
+
+        Retorne exatamente nesta estrutura:
+
+        {
+          "proponente": "",
+          "fipeValue": "",
+          "vehicle": "",
+          "plate": "",
+          "danosMateriais": "",
+          "danosCorporais": "",
+          "danosMorais": "",
+          "appMorte": "",
+          "appInvalidez": "",
+          "assistenciaGuincho": "",
+          "carroReserva": "",
+          "franquiaParabrisa": "",
+          "franquiaVidroLateral": "",
+          "franquiaFarolConvencional": "",
+          "franquiaLanternaConvencional": "",
+          "franquiaFarolXenonLed": "",
+          "franquiaLanternaLed": "",
+          "franquiaRetrovisor": "",
+          "franquiaLanternaAuxiliar": "",
+          "franquiaPneuRoda": "",
+          "franquiaPequenosReparos": "",
+          "franquiaVeiculo": "",
+          "tipoFranquiaVeiculo": "",
+          "condutorPrincipal": "",
+          "usoVeiculo": "",
+          "estadoCivil": "",
+          "cepPernoite": "",
+          "resideEm": "",
+          "condutores18a25": "",
+          "paymentRows": [
             {
-              "proponente": "",
-              "fipeValue": "",
-              "vehicle": "",
-              "plate": "",
-              "danosMateriais": "",
-              "danosCorporais": "",
-              "danosMorais": "",
-              "appMorte": "",
-              "appInvalidez": "",
-              "assistenciaGuincho": "",
-              "carroReserva": "",
-              "franquiaParabrisa": "",
-              "franquiaVidroLateral": "",
-              "franquiaFarolConvencional": "",
-              "franquiaLanternaConvencional": "",
-              "franquiaFarolXenonLed": "",
-              "franquiaLanternaLed": "",
-              "franquiaRetrovisor": "",
-              "franquiaLanternaAuxiliar": "",
-              "franquiaPneuRoda": "",
-              "franquiaPequenosReparos": "",
-              "franquiaVeiculo": "",
-              "tipoFranquiaVeiculo": "",
-              "condutorPrincipal": "",
-              "usoVeiculo": "",
-              "estadoCivil": "",
-              "cepPernoite": "",
-              "resideEm": "",
-              "condutores18a25": "",
-              "paymentRows": [
-                {
-                  "parcela": "",
-                  "carne": "",
-                  "cartaoCredito": "",
-                  "debitoConta": ""
-                }
-              ]
+              "parcela": "",
+              "carne": "",
+              "cartaoCredito": "",
+              "debitoConta": ""
             }
+          ]
+        }
 
-            Regras finais:
-            1. Extraia os dados de todas as páginas do PDF.
-            2. Se um campo não existir, deixe string vazia.
-            3. Se houver múltiplos planos, use somente o plano "__COVERAGE_TYPE__".
-            4. Para os campos de cobertura, use SOMENTE a coluna "Limite Máximo de Indenização".
-            5. Não use "Preço por Cobertura" para preencher campos de cobertura.
-            6. Retorne somente JSON válido.
-            """;
+        REGRAS FINAIS:
+        1. Use somente o plano "__COVERAGE_TYPE__".
+        2. Para coberturas, use somente "Limite Máximo de Indenização" ou o valor descritivo do benefício.
+        3. Nunca use "Preço por Cobertura" para preencher coberturas.
+        4. Para paymentRows, use somente a coluna do plano "__COVERAGE_TYPE__" nas 3 tabelas de pagamento.
+        5. Ignore a coluna "Juros".
+        6. Retorne somente JSON válido.
+        """;
 
         return template.Replace("__COVERAGE_TYPE__", coverageTypeText);
     }
