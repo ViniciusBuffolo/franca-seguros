@@ -103,14 +103,43 @@ public sealed class QuoteTemplateRenderService : IQuoteTemplateRenderService
 
         foreach (var row in rows)
         {
+            var carneClass = GetPaymentCellClass(row.CarneSemJuros, row.Parcela);
+            var cartaoClass = GetPaymentCellClass(row.CartaoCreditoSemJuros, row.Parcela);
+            var debitoClass = GetPaymentCellClass(row.DebitoContaSemJuros, row.Parcela);
+
             sb.AppendLine("<tr>");
             sb.AppendLine($"    <td class=\"payment-label\">{Encode(row.Parcela)}</td>");
-            sb.AppendLine($"    <td>{Encode(row.Carne)}</td>");
-            sb.AppendLine($"    <td>{Encode(row.CartaoCredito)}</td>");
-            sb.AppendLine($"    <td>{Encode(row.DebitoConta)}</td>");
+            sb.AppendLine($"    <td{BuildClassAttribute(carneClass)}>{Encode(row.Carne)}</td>");
+            sb.AppendLine($"    <td{BuildClassAttribute(cartaoClass)}>{Encode(row.CartaoCredito)}</td>");
+            sb.AppendLine($"    <td{BuildClassAttribute(debitoClass)}>{Encode(row.DebitoConta)}</td>");
             sb.AppendLine("</tr>");
         }
 
         return sb.ToString();
+    }
+
+    private static string GetPaymentCellClass(bool semJuros, string? parcela)
+    {
+        if (!semJuros)
+            return string.Empty;
+
+        return IsVista(parcela)
+            ? "payment-highlight-strong"
+            : "payment-highlight";
+    }
+
+    private static bool IsVista(string? parcela)
+    {
+        var normalized = (parcela ?? string.Empty).Trim();
+
+        return normalized == "01" || normalized == "1";
+    }
+
+    private static string BuildClassAttribute(string? className)
+    {
+        if (string.IsNullOrWhiteSpace(className))
+            return string.Empty;
+
+        return $" class=\"{className}\"";
     }
 }

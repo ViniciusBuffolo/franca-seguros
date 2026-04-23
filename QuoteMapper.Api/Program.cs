@@ -58,7 +58,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("Frontend", policy =>
     {
         policy
-            .WithOrigins("http://localhost:3000")
+            .AllowAnyOrigin()
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
@@ -70,12 +70,17 @@ app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "QuoteMapper API V1");
-    c.RoutePrefix = string.Empty;
+    c.RoutePrefix = "swagger";
 });
 
 app.UseHttpsRedirection();
 app.UseCors("Frontend");
 
+// Serve wwwroot (index.html, css, js, etc)
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
+// Serve Templates/Logos as /logos
 var logosPath = Path.Combine(app.Environment.ContentRootPath, "Templates", "Logos");
 
 if (Directory.Exists(logosPath))
@@ -89,4 +94,5 @@ if (Directory.Exists(logosPath))
 
 app.UseAuthorization();
 app.MapControllers();
+
 app.Run();

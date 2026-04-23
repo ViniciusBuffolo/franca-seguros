@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MyPdfApi.Models;
 using MyPdfApi.Services;
+using QuoteMapper.Api.Dtos;
+using QuoteMapper.Api.Interfaces;
 
 namespace MyPdfApi.Controllers;
 
@@ -11,15 +13,18 @@ public sealed class PdfExtractionController : ControllerBase
     private readonly IChatPdfService _chatPdfService;
     private readonly IQuoteTemplateMapper _quoteTemplateMapper;
     private readonly IQuoteTemplateRenderService _quoteTemplateRenderService;
+    private readonly IFipeService _fipeService;
 
     public PdfExtractionController(
         IChatPdfService chatPdfService,
         IQuoteTemplateMapper quoteTemplateMapper,
-        IQuoteTemplateRenderService quoteTemplateRenderService)
+        IQuoteTemplateRenderService quoteTemplateRenderService,
+        IFipeService fipeService)
     {
         _chatPdfService = chatPdfService;
         _quoteTemplateMapper = quoteTemplateMapper;
         _quoteTemplateRenderService = quoteTemplateRenderService;
+        _fipeService = fipeService;
     }
 
     [HttpPost("extract-template-html")]
@@ -44,6 +49,8 @@ public sealed class PdfExtractionController : ControllerBase
                 prompt,
                 cancellationToken);
 
+            await TryFillFipeValueAsync(extracted, cancellationToken);
+
             var templateData = _quoteTemplateMapper.MapToTemplateData(extracted);
             var html = await _quoteTemplateRenderService.RenderAsync(templateData, cancellationToken);
 
@@ -56,6 +63,42 @@ public sealed class PdfExtractionController : ControllerBase
                 message = "Failed to process PDF with ChatPDF.",
                 error = ex.Message
             });
+        }
+    }
+
+    private async Task TryFillFipeValueAsync(
+        QuoteTemplateExtractionResult extracted,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var fipeCode = (extracted.FipeCode ?? string.Empty).Trim();
+            var anoModeloText = (extracted.AnoModelo ?? string.Empty).Trim();
+
+            if (string.IsNullOrWhiteSpace(fipeCode))
+                return;
+
+            if (!int.TryParse(anoModeloText, out var anoModelo))
+                return;
+
+            var request = new FipeRequestDto
+            {
+                CodigoTabelaReferencia = 173,
+                CodigoTipoCombustivel = 5,
+                AnoModelo = anoModelo,
+                ModeloCodigoExterno = fipeCode
+            };
+
+            var fipeValue = await _fipeService.GetFipeValueAsync(request);
+
+            if (!string.IsNullOrWhiteSpace(fipeValue))
+            {
+                extracted.FipeValue = fipeValue;
+            }
+        }
+        catch
+        {
+            // Não quebra o fluxo caso a consulta FIPE falhe.
         }
     }
 
@@ -110,6 +153,7 @@ public sealed class PdfExtractionController : ControllerBase
         - appInvalidez
         - assistenciaGuincho
         - carroReserva
+        - tipoCarroReserva
         - franquiaParabrisa
         - franquiaVidroLateral
         - franquiaFarolConvencional
@@ -130,7 +174,8 @@ public sealed class PdfExtractionController : ControllerBase
         - appMorte = valor da linha "APP - Morte"
         - appInvalidez = valor da linha "APP - Invalidez Permanente"
         - assistenciaGuincho = usar o valor descritivo do benefício de assistência, como "Km Livre", "Km Ilimitado" ou equivalente, referente ao plano escolhido
-        - carroReserva = usar o valor descritivo do benefício do carro reserva do plano escolhido, como "15 Dias", podendo combinar com o tipo/modelo se isso estiver claramente indicado no PDF
+        - carroReserva = usar somente a quantidade de diárias do carro reserva do plano escolhido, como "15 Dias"
+        - tipoCarroReserva = usar o tipo textual da linha "Tipo de Carro Reserva" do plano escolhido, como "Básico", "Intermediário" ou "Superior"
         - tipoFranquiaVeiculo = tipo textual da franquia do veículo, como "Normal", "50% da Normal", "Reduzida" ou "Majorada"
         - franquiaVeiculo = valor monetário da franquia do veículo
 
@@ -142,11 +187,9 @@ public sealed class PdfExtractionController : ControllerBase
           3. Cartão de Crédito
         - Cada tabela possui:
           - uma coluna "Parcelas"
-          - uma coluna "Juros" (IGNORAR)
+          - uma coluna "Juros"
           - colunas de planos: Roubo e Furto, Básico, Ampliado, Completo, Master e Exclusivo
         - Para preencher paymentRows, use SOMENTE a coluna do plano "__COVERAGE_TYPE__".
-        - Ignore completamente a coluna "Juros".
-        - NÃO retorne juros em nenhum campo.
         - A coluna "carne" no JSON deve receber os valores da tabela "Boleto Bancário".
         - A coluna "cartaoCredito" no JSON deve receber os valores da tabela "Cartão de Crédito".
         - A coluna "debitoConta" no JSON deve receber os valores da tabela "Débito em Conta".
@@ -157,15 +200,15 @@ public sealed class PdfExtractionController : ControllerBase
         - Não invente valores.
         - Não misture valores de outros planos.
 
-        EXEMPLO DE COMO MONTAR paymentRows:
-        Se o plano escolhido for "Master":
-        - pegue a coluna "Master" da tabela Boleto Bancário e salve em "carne"
-        - pegue a coluna "Master" da tabela Cartão de Crédito e salve em "cartaoCredito"
-        - pegue a coluna "Master" da tabela Débito em Conta e salve em "debitoConta"
+        REGRAS DE DESTAQUE DE JUROS:
+        - Se a condição da parcela na tabela correspondente for "sem juros", marque o campo booleano correspondente como true.
+        - Caso contrário, marque como false.
+        - carneSemJuros corresponde à tabela "Boleto Bancário"
+        - cartaoCreditoSemJuros corresponde à tabela "Cartão de Crédito"
+        - debitoContaSemJuros corresponde à tabela "Débito em Conta"
 
         REGRAS DE IDENTIFICAÇÃO DOS DADOS PRINCIPAIS:
         - proponente = nome do segurado/proponente
-        - fipeValue = valor FIPE, se estiver explícito; se não estiver explícito, retornar string vazia
         - vehicle = descrição do veículo
         - plate = placa
         - condutorPrincipal = nome do principal condutor
@@ -175,11 +218,25 @@ public sealed class PdfExtractionController : ControllerBase
         - resideEm = residência do principal condutor
         - condutores18a25 = resposta sobre condutores entre 18 e 25 anos
 
+        REGRAS FIPE (CRÍTICO):
+        - fipeCode = extrair EXATAMENTE o valor após "Cód. FIPE:"
+        - Exemplo correto: "015090-8"
+        - anoModelo = extrair EXATAMENTE o valor de "Ano/Modelo"
+        - Exemplo correto: "2014"
+        - NÃO extrair valores monetários
+        - NÃO usar valores da tabela de cobertura
+        - fipeValue = sempre string vazia
+        - O campo fipeCode DEVE ser preenchido quando existir "Cód. FIPE"
+        - O campo anoModelo DEVE ser preenchido quando existir "Ano/Modelo"
+        - NÃO deixar esses campos vazios se existirem no PDF
+
         Retorne exatamente nesta estrutura:
 
         {
           "proponente": "",
           "fipeValue": "",
+          "fipeCode": "",
+          "anoModelo": "",
           "vehicle": "",
           "plate": "",
           "danosMateriais": "",
@@ -189,6 +246,7 @@ public sealed class PdfExtractionController : ControllerBase
           "appInvalidez": "",
           "assistenciaGuincho": "",
           "carroReserva": "",
+          "tipoCarroReserva": "",
           "franquiaParabrisa": "",
           "franquiaVidroLateral": "",
           "franquiaFarolConvencional": "",
@@ -208,13 +266,16 @@ public sealed class PdfExtractionController : ControllerBase
           "resideEm": "",
           "condutores18a25": "",
           "paymentRows": [
-            {
-              "parcela": "",
-              "carne": "",
-              "cartaoCredito": "",
-              "debitoConta": ""
-            }
-          ]
+          {
+            "parcela": "",
+            "carne": "",
+            "carneSemJuros": false,
+            "cartaoCredito": "",
+            "cartaoCreditoSemJuros": false,
+            "debitoConta": "",
+            "debitoContaSemJuros": false
+          }
+        ]
         }
 
         REGRAS FINAIS:

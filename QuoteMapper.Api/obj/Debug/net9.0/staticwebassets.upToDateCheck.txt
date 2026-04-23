@@ -1,0 +1,2 @@
+wwwroot\index.html
+C:\Dev\Franca_Seguros\Backend\QuoteMapper.Api\wwwroot\index.html

@@ -4,16 +4,15 @@
     <meta charset="utf-8" />
     <title>Cotação de Seguro</title>
     <style>
-        /* --------------------------------------------
-           A4 print layout
-           -------------------------------------------- */
         @page {
             size: A4;
-            margin: 10mm;
+            margin: 5mm;
         }
 
         * {
             box-sizing: border-box;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
         }
 
         html, body {
@@ -22,8 +21,8 @@
             font-family: Arial, Helvetica, sans-serif;
             color: #111827;
             background: #ffffff;
-            font-size: 12px;
-            line-height: 1.35;
+            font-size: 10px;
+            line-height: 1.2;
         }
 
         body {
@@ -35,24 +34,24 @@
 
         .page {
             width: 100%;
-            padding: 6mm 6mm 4mm 6mm;
+            padding: 3mm 4mm 2.5mm 4mm;
         }
 
         .top-meta {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
-            font-size: 13px;
+            margin-bottom: 4px;
+            font-size: 9px;
         }
 
         .logo-row {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
             align-items: center;
-            margin-bottom: 16px;
+            margin-bottom: 7px;
             border-bottom: 2px solid #0f766e;
-            padding-bottom: 8px;
+            padding-bottom: 4px;
         }
 
         .logo-left,
@@ -77,26 +76,27 @@
             .logo-left img,
             .logo-center img,
             .logo-right img {
-                max-height: 54px;
+                max-height: 32px;
+                max-width: 100%;
                 object-fit: contain;
                 display: block;
             }
 
         .main-title {
             text-align: center;
-            margin-bottom: 6px;
+            margin-bottom: 2px;
         }
 
             .main-title h1 {
                 margin: 0;
-                font-size: 20px;
-                letter-spacing: 0.3px;
+                font-size: 14px;
+                letter-spacing: 0.15px;
             }
 
         .subtitle {
             text-align: center;
-            margin-bottom: 18px;
-            font-size: 14px;
+            margin-bottom: 8px;
+            font-size: 10px;
             color: #374151;
             font-weight: 600;
         }
@@ -104,23 +104,25 @@
         .card {
             border: 1px solid #d1d5db;
             border-radius: 6px;
-            padding: 10px;
-            margin-bottom: 12px;
+            padding: 8px 10px;
+            margin-bottom: 7px;
+            page-break-inside: avoid;
+            break-inside: avoid;
         }
 
         .section-title {
-            margin: 0 0 8px 0;
-            font-size: 14px;
+            margin: 0 0 6px 0;
+            font-size: 11px;
             color: #0f766e;
             border-bottom: 1px solid #d1d5db;
-            padding-bottom: 4px;
+            padding-bottom: 3px;
             font-weight: 700;
         }
 
         .grid-2 {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 8px 20px;
+            gap: 6px 18px;
         }
 
         .field {
@@ -130,39 +132,76 @@
         }
 
         .label {
-            font-size: 11px;
+            font-size: 9px;
             color: #6b7280;
             font-weight: 700;
             text-transform: uppercase;
         }
 
         .value {
-            font-size: 12px;
+            font-size: 10px;
             font-weight: 600;
-            min-height: 16px;
+            min-height: 12px;
         }
 
-        .coverage-values {
+        .coverage-values,
+        .franchise-values {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 8px 24px;
-            margin-top: 8px;
+            gap: 4px 18px;
+            margin-top: 4px;
         }
 
-        .coverage-value {
+        .coverage-value,
+        .franchise-value {
             display: flex;
             justify-content: space-between;
+            align-items: baseline;
             border-bottom: 1px dashed #d1d5db;
             padding: 4px 0;
-            gap: 12px;
+            gap: 10px;
         }
 
-            .coverage-value .left {
+            .coverage-value .left,
+            .franchise-value .left {
                 font-weight: 700;
             }
 
-            .coverage-value .right {
+            .coverage-value .right,
+            .franchise-value .right {
                 font-weight: 700;
+                text-align: right;
+                white-space: nowrap;
+            }
+
+        .highlight-franchise {
+            margin-top: 8px;
+            border: 1px solid #0f766e;
+            background: #ecfdf5;
+            border-radius: 8px;
+            padding: 8px 10px;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+            .highlight-franchise .label {
+                color: #0f766e;
+                font-size: 9px;
+            }
+
+            .highlight-franchise .value {
+                font-size: 18px;
+                line-height: 1.05;
+                font-weight: 800;
+                color: #111827;
+                margin-top: 2px;
+                min-height: auto;
+            }
+
+            .highlight-franchise .note {
+                margin-top: 4px;
+                font-size: 8px;
+                color: #4b5563;
             }
 
         table {
@@ -170,51 +209,116 @@
             border-collapse: collapse;
         }
 
-        .payment-table th,
-        .payment-table td {
-            border: 1px solid #d1d5db;
-            padding: 6px 8px;
-            text-align: center;
-            font-size: 11px;
+        .payment-table {
+            table-layout: fixed;
         }
 
-        .payment-table thead th {
-            background: #0f766e;
-            color: #ffffff;
-            font-weight: 700;
+            .payment-table th,
+            .payment-table td {
+                border: 1px solid #d1d5db;
+                padding: 4px 5px;
+                text-align: center;
+                font-size: 9px;
+            }
+
+            .payment-table thead th {
+                background: #0f766e;
+                color: #ffffff;
+                font-weight: 700;
+            }
+
+            .payment-table tbody tr:nth-child(even) {
+                background: #f9fafb;
+            }
+
+            .payment-table .payment-label {
+                font-weight: 700;
+                text-align: left;
+                width: 48px;
+            }
+
+        .payment-highlight {
+            background: #ecfdf5 !important;
+            color: #166534 !important;
+            font-weight: 800;
         }
 
-        .payment-table tbody tr:nth-child(even) {
-            background: #f9fafb;
-        }
-
-        .payment-table .payment-label {
-            font-weight: 700;
-            text-align: left;
+        .payment-highlight-strong {
+            background: #d1fae5 !important;
+            color: #14532d !important;
+            font-weight: 800;
+            box-shadow: inset 0 0 0 1px #86efac;
         }
 
         .note {
-            margin-top: 6px;
-            font-size: 10px;
+            margin-top: 4px;
+            font-size: 8px;
             color: #4b5563;
         }
 
         .footer-contact {
-            margin-top: 16px;
+            margin-top: 8px;
             text-align: center;
-            font-size: 12px;
+            font-size: 9px;
             border-top: 1px solid #d1d5db;
-            padding-top: 10px;
+            padding-top: 6px;
+            page-break-inside: avoid;
+            break-inside: avoid;
         }
 
             .footer-contact .name {
                 font-weight: 700;
-                font-size: 13px;
-                margin-bottom: 4px;
+                font-size: 10px;
+                margin-bottom: 2px;
             }
 
         .muted {
             color: #6b7280;
+        }
+
+        @media print {
+            html, body {
+                width: 210mm;
+                height: auto;
+                overflow: hidden;
+                background: #ffffff !important;
+            }
+
+            .page {
+                page-break-after: avoid;
+            }
+
+            .card,
+            .highlight-franchise,
+            .footer-contact,
+            .payment-table,
+            .payment-table tr,
+            .payment-table td,
+            .payment-table th {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+
+            .payment-highlight {
+                background: #ecfdf5 !important;
+                color: #166534 !important;
+            }
+
+            .payment-highlight-strong {
+                background: #d1fae5 !important;
+                color: #14532d !important;
+                box-shadow: inset 0 0 0 1px #86efac !important;
+            }
+
+            .highlight-franchise {
+                background: #ecfdf5 !important;
+                border-color: #0f766e !important;
+            }
+
+            .payment-table thead th {
+                background: #0f766e !important;
+                color: #ffffff !important;
+            }
         }
     </style>
 </head>
@@ -295,74 +399,77 @@
                     <span class="left">APP - Invalidez Permanente</span>
                     <span class="right">{{APP_INVALIDEZ}}</span>
                 </div>
-            </div>
 
-            <div style="margin-top:12px;" class="grid-2">
-                <div class="field">
-                    <div class="label">Assistência Guincho</div>
-                    <div class="value">{{ASSISTENCIA_GUINCHO}}</div>
+                <div class="coverage-value">
+                    <span class="left">Assistência Guincho</span>
+                    <span class="right">{{ASSISTENCIA_GUINCHO}}</span>
                 </div>
-                <div class="field">
-                    <div class="label">Carro reserva</div>
-                    <div class="value">{{CARRO_RESERVA}}</div>
+
+                <div class="coverage-value">
+                    <span class="left">Carro Reserva</span>
+                    <span class="right">{{CARRO_RESERVA}}</span>
                 </div>
             </div>
         </div>
 
         <div class="card">
             <h2 class="section-title">Franquias</h2>
-            <div class="grid-2">
-                <div class="field">
-                    <div class="label">Franquia Para-brisa</div>
-                    <div class="value">{{FRANQUIA_PARABRISA}}</div>
-                </div>
-                <div class="field">
-                    <div class="label">Franquia Vidro Lateral</div>
-                    <div class="value">{{FRANQUIA_VIDRO_LATERAL}}</div>
+
+            <div class="franchise-values">
+                <div class="franchise-value">
+                    <span class="left">Franquia Para-brisa</span>
+                    <span class="right">{{FRANQUIA_PARABRISA}}</span>
                 </div>
 
-                <div class="field">
-                    <div class="label">Franquia Farol Convencional</div>
-                    <div class="value">{{FRANQUIA_FAROL_CONVENCIONAL}}</div>
-                </div>
-                <div class="field">
-                    <div class="label">Franquia Lanterna Convencional</div>
-                    <div class="value">{{FRANQUIA_LANTERNA_CONVENCIONAL}}</div>
+                <div class="franchise-value">
+                    <span class="left">Franquia Vidro Lateral</span>
+                    <span class="right">{{FRANQUIA_VIDRO_LATERAL}}</span>
                 </div>
 
-                <div class="field">
-                    <div class="label">Franquia Farol Xenon/Led</div>
-                    <div class="value">{{FRANQUIA_FAROL_XENON_LED}}</div>
-                </div>
-                <div class="field">
-                    <div class="label">Franquia Lanterna Led</div>
-                    <div class="value">{{FRANQUIA_LANTERNA_LED}}</div>
+                <div class="franchise-value">
+                    <span class="left">Franquia Farol Convencional</span>
+                    <span class="right">{{FRANQUIA_FAROL_CONVENCIONAL}}</span>
                 </div>
 
-                <div class="field">
-                    <div class="label">Franquia Retrovisor Externo</div>
-                    <div class="value">{{FRANQUIA_RETROVISOR}}</div>
-                </div>
-                <div class="field">
-                    <div class="label">Franquia Lanterna Auxiliar</div>
-                    <div class="value">{{FRANQUIA_LANTERNA_AUXILIAR}}</div>
+                <div class="franchise-value">
+                    <span class="left">Franquia Lanterna Convencional</span>
+                    <span class="right">{{FRANQUIA_LANTERNA_CONVENCIONAL}}</span>
                 </div>
 
-                <div class="field">
-                    <div class="label">Franquia Proteção Pneu e Roda</div>
-                    <div class="value">{{FRANQUIA_PNEU_RODA}}</div>
+                <div class="franchise-value">
+                    <span class="left">Franquia Farol Xenon/Led</span>
+                    <span class="right">{{FRANQUIA_FAROL_XENON_LED}}</span>
                 </div>
-                <div class="field">
-                    <div class="label">Franquia Pequenos Reparos</div>
-                    <div class="value">{{FRANQUIA_PEQUENOS_REPAROS}}</div>
+
+                <div class="franchise-value">
+                    <span class="left">Franquia Lanterna Led</span>
+                    <span class="right">{{FRANQUIA_LANTERNA_LED}}</span>
+                </div>
+
+                <div class="franchise-value">
+                    <span class="left">Franquia Retrovisor Externo</span>
+                    <span class="right">{{FRANQUIA_RETROVISOR}}</span>
+                </div>
+
+                <div class="franchise-value">
+                    <span class="left">Franquia Lanterna Auxiliar</span>
+                    <span class="right">{{FRANQUIA_LANTERNA_AUXILIAR}}</span>
+                </div>
+
+                <div class="franchise-value">
+                    <span class="left">Franquia Proteção Pneu e Roda</span>
+                    <span class="right">{{FRANQUIA_PNEU_RODA}}</span>
+                </div>
+
+                <div class="franchise-value">
+                    <span class="left">Franquia Pequenos Reparos</span>
+                    <span class="right">{{FRANQUIA_PEQUENOS_REPAROS}}</span>
                 </div>
             </div>
 
-            <div style="margin-top:12px;">
-                <div class="field">
-                    <div class="label">Franquia do Veículo</div>
-                    <div class="value">{{FRANQUIA_VEICULO}}</div>
-                </div>
+            <div class="highlight-franchise">
+                <div class="label">Franquia do Veículo</div>
+                <div class="value">{{FRANQUIA_VEICULO}}</div>
                 <div class="note">
                     {{TIPO_FRANQUIA_VEICULO}} — Participação obrigatória em caso de sinistro de perda parcial.
                 </div>
@@ -419,7 +526,7 @@
             </table>
 
             <div class="note">
-                Condição de pagamento com preço de à vista em destaque.
+                Condição de pagamento sem juros em destaque.
             </div>
         </div>
 

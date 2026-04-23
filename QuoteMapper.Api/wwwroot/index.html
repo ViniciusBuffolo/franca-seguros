@@ -1,0 +1,456 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Franca Seguros - Revisão de Cotação</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0f766e;
+            --primary-dark: #0b5e58;
+            --border: #d1d5db;
+            --bg: #f3f4f6;
+            --text: #111827;
+            --muted: #6b7280;
+            --danger: #b91c1c;
+            --success: #166534;
+            --card: #ffffff;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: Arial, Helvetica, sans-serif;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .header {
+            margin-bottom: 24px;
+        }
+
+            .header h1 {
+                margin: 0 0 8px 0;
+                font-size: 28px;
+                color: var(--primary);
+            }
+
+            .header p {
+                margin: 0;
+                color: var(--muted);
+                font-size: 14px;
+            }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr auto;
+            gap: 16px;
+            align-items: end;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+            .field label {
+                font-size: 13px;
+                font-weight: 700;
+                color: #374151;
+            }
+
+            .field input,
+            .field select {
+                width: 100%;
+                padding: 12px 14px;
+                border: 1px solid var(--border);
+                border-radius: 10px;
+                font-size: 14px;
+                background: #fff;
+                color: var(--text);
+            }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        button {
+            border: none;
+            border-radius: 10px;
+            padding: 12px 18px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+            .btn-primary:hover {
+                background: var(--primary-dark);
+            }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: var(--text);
+        }
+
+            .btn-secondary:hover {
+                background: #d1d5db;
+            }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .status {
+            margin-top: 14px;
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+            .status.error {
+                color: var(--danger);
+                font-weight: 700;
+            }
+
+            .status.success {
+                color: var(--success);
+                font-weight: 700;
+            }
+
+        .preview-title {
+            margin: 0 0 14px 0;
+            font-size: 20px;
+            color: var(--primary);
+        }
+
+        .preview-shell {
+            background: transparent;
+            border-radius: 12px;
+            padding: 0;
+            overflow: visible;
+        }
+
+        .preview-frame {
+            width: 210mm;
+            max-width: 100%;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+            overflow: visible;
+        }
+
+        iframe {
+            width: 100%;
+            height: 0;
+            border: none;
+            display: block;
+            background: white;
+            overflow: hidden;
+        }
+
+        .bottom-actions {
+            margin-top: 16px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .empty-state {
+            color: var(--muted);
+            font-size: 14px;
+            padding: 16px 0 0;
+        }
+
+        @media (max-width: 980px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .preview-shell {
+                padding: 0;
+            }
+
+            .preview-frame {
+                width: 100%;
+                max-width: 100%;
+            }
+
+            .bottom-actions {
+                justify-content: stretch;
+            }
+
+                .bottom-actions button {
+                    width: 100%;
+                }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Franca Seguros - Revisão de Cotação</h1>
+            <p>Envie o PDF, selecione o tipo de cobertura e revise o documento antes de imprimir.</p>
+        </div>
+
+        <div class="card">
+            <form id="uploadForm">
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="file">Arquivo PDF</label>
+                        <input id="file" name="file" type="file" accept=".pdf,application/pdf" required />
+                    </div>
+
+                    <div class="field">
+                        <label for="coverageType">Coverage Type</label>
+                        <select id="coverageType" name="coverageType" required>
+                            <option value="RouboEFurto">Roubo e Furto</option>
+                            <option value="Basico">Básico</option>
+                            <option value="Ampliado">Ampliado</option>
+                            <option value="Completo" selected>Completo</option>
+                            <option value="Master">Master</option>
+                            <option value="Exclusivo">Exclusivo</option>
+                        </select>
+                    </div>
+
+                    <div class="actions">
+                        <button type="submit" class="btn-primary" id="submitBtn">Gerar HTML</button>
+                    </div>
+                </div>
+            </form>
+
+            <div id="status" class="status">Selecione um PDF e clique em "Gerar HTML".</div>
+        </div>
+
+        <div class="card">
+            <h2 class="preview-title">Pré-visualização</h2>
+
+            <div id="emptyState" class="empty-state">
+                O HTML gerado aparecerá aqui abaixo.
+            </div>
+
+            <div id="previewContainer" class="preview-shell" style="display:none;">
+                <div class="preview-frame">
+                    <iframe id="previewFrame"
+                            title="Pré-visualização do HTML gerado"
+                            scrolling="no">
+                    </iframe>
+                </div>
+            </div>
+
+            <div class="bottom-actions" id="printSection" style="display:none;">
+                <button type="button" class="btn-secondary" id="printBtn">Imprimir</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById("uploadForm");
+        const fileInput = document.getElementById("file");
+        const coverageTypeSelect = document.getElementById("coverageType");
+        const submitBtn = document.getElementById("submitBtn");
+        const statusEl = document.getElementById("status");
+        const previewContainer = document.getElementById("previewContainer");
+        const previewFrame = document.getElementById("previewFrame");
+        const printBtn = document.getElementById("printBtn");
+        const printSection = document.getElementById("printSection");
+        const emptyState = document.getElementById("emptyState");
+
+        function setStatus(message, type = "") {
+            statusEl.className = "status";
+            if (type) {
+                statusEl.classList.add(type);
+            }
+            statusEl.textContent = message;
+        }
+
+        function injectPreviewFixes(html) {
+            const fixStyle = `
+<style>
+html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow-x: hidden !important;
+        overflow-y: hidden !important;
+}
+
+body {
+        width: 210mm !important;
+        max-width: 210mm !important;
+        min-height: auto !important;
+}
+
+.page {
+        overflow: visible !important;
+}
+
+table {
+        table-layout: fixed;
+        word-break: break-word;
+}
+
+img {
+        max-width: 100% !important;
+        height: auto !important;
+}
+</style>`;
+
+            if (html.includes("</head>")) {
+                return html.replace("</head>", `${fixStyle}</head>`);
+            }
+
+            return `${fixStyle}${html}`;
+        }
+
+        function normalizeReturnedHtml(html) {
+            const normalized = html
+                .replaceAll("https://localhost:7133/logos/", "/logos/")
+                .replaceAll("http://localhost:7133/logos/", "/logos/")
+                .replaceAll("https://localhost/logos/", "/logos/")
+                .replaceAll("http://localhost/logos/", "/logos/");
+
+            return injectPreviewFixes(normalized);
+        }
+
+        function resizePreviewFrame() {
+            try {
+                const doc = previewFrame.contentDocument || previewFrame.contentWindow?.document;
+                if (!doc) return;
+
+                const body = doc.body;
+                const html = doc.documentElement;
+
+                if (body) {
+                    body.style.overflow = "hidden";
+                }
+
+                if (html) {
+                    html.style.overflow = "hidden";
+                }
+
+                const height = Math.max(
+                    body ? body.scrollHeight : 0,
+                    body ? body.offsetHeight : 0,
+                    html ? html.scrollHeight : 0,
+                    html ? html.offsetHeight : 0,
+                    html ? html.clientHeight : 0
+                );
+
+                if (height > 0) {
+                    previewFrame.style.height = `${height + 2}px`;
+                }
+            } catch (error) {
+                console.error("Erro ao redimensionar preview:", error);
+            }
+        }
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const file = fileInput.files[0];
+            const coverageType = coverageTypeSelect.value;
+
+            if (!file) {
+                setStatus("Selecione um arquivo PDF.", "error");
+                return;
+            }
+
+            submitBtn.disabled = true;
+            printSection.style.display = "none";
+            previewContainer.style.display = "none";
+            emptyState.style.display = "block";
+            setStatus("Enviando PDF e gerando HTML...");
+
+            try {
+                const formData = new FormData();
+                formData.append("File", file);
+                formData.append("CoverageType", coverageType);
+
+                const response = await fetch("/api/pdf-extraction/extract-template-html", {
+                    method: "POST",
+                    body: formData
+                });
+
+                const contentType = response.headers.get("content-type") || "";
+
+                if (!response.ok) {
+                    if (contentType.includes("application/json")) {
+                        const errorJson = await response.json();
+                        throw new Error(errorJson.message || errorJson.error || "Erro ao processar o PDF.");
+                    }
+
+                    const errorText = await response.text();
+                    throw new Error(errorText || "Erro ao processar o PDF.");
+                }
+
+                const html = await response.text();
+                const finalHtml = normalizeReturnedHtml(html);
+
+                previewFrame.onload = () => {
+                    previewContainer.style.display = "block";
+                    printSection.style.display = "flex";
+                    emptyState.style.display = "none";
+                    setStatus("HTML gerado com sucesso. Revise abaixo antes de imprimir.", "success");
+
+                    resizePreviewFrame();
+                    requestAnimationFrame(resizePreviewFrame);
+                    setTimeout(resizePreviewFrame, 50);
+                    setTimeout(resizePreviewFrame, 150);
+                    setTimeout(resizePreviewFrame, 300);
+                    setTimeout(resizePreviewFrame, 600);
+                };
+
+                previewFrame.srcdoc = finalHtml;
+            } catch (error) {
+                setStatus(error.message || "Falha ao gerar o HTML.", "error");
+            } finally {
+                submitBtn.disabled = false;
+            }
+        });
+
+        printBtn.addEventListener("click", () => {
+            const frameWindow = previewFrame.contentWindow;
+            if (!frameWindow) {
+                setStatus("A pré-visualização ainda não está pronta para impressão.", "error");
+                return;
+            }
+
+            frameWindow.focus();
+            frameWindow.print();
+        });
+
+        window.addEventListener("resize", resizePreviewFrame);
+    </script>
+</body>
+</html>

@@ -71,3 +71,5 @@ C:\Dev\Franca_Seguros\Backend\QuoteMapper.Api\bin\Debug\net9.0\Templates\Logos\t
 C:\Dev\Franca_Seguros\Backend\QuoteMapper.Api\bin\Debug\net9.0\Templates\Logos\Yelum.svg
 C:\Dev\Franca_Seguros\Backend\QuoteMapper.Api\bin\Debug\net9.0\Templates\Logos\zurich.svg
 C:\Dev\Franca_Seguros\Backend\QuoteMapper.Api\obj\Debug\net9.0\QuoteMapper.Api.sourcelink.json
+C:\Dev\Franca_Seguros\Backend\QuoteMapper.Api\bin\Debug\net9.0\QuoteMapper.Api.staticwebassets.runtime.json
+C:\Dev\Franca_Seguros\Backend\QuoteMapper.Api\obj\Debug\net9.0\compressed\6h2mr0erbo-pkmsxp6ebr.gz

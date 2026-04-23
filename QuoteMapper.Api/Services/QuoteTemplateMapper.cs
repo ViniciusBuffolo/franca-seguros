@@ -37,7 +37,9 @@ public sealed class QuoteTemplateMapper : IQuoteTemplateMapper
             AppInvalidez = extracted.AppInvalidez,
 
             AssistenciaGuincho = extracted.AssistenciaGuincho,
-            CarroReserva = extracted.CarroReserva,
+            CarroReserva = FormatCarroReserva(
+                extracted.CarroReserva,
+                extracted.TipoCarroReserva),
 
             FranquiaParabrisa = extracted.FranquiaParabrisa,
             FranquiaVidroLateral = extracted.FranquiaVidroLateral,
@@ -61,9 +63,34 @@ public sealed class QuoteTemplateMapper : IQuoteTemplateMapper
 
             PaymentRows = extracted.PaymentRows,
 
-            BrokerContactName = "Franca Seguros",
-            BrokerContactPhone = "(28) 99999-9999",
-            BrokerContactEmail = "contato@francaseguros.com.br"
+            BrokerContactName = "França Seguros",
+            BrokerContactPhone = "(28) 99917-5338",
+            BrokerContactEmail = "francaseguros@gmail.com"
+        };
+    }
+
+    private static string FormatCarroReserva(string? carroReserva, string? tipoCarroReserva)
+    {
+        var dias = (carroReserva ?? string.Empty).Trim();
+        var tipo = (tipoCarroReserva ?? string.Empty).Trim();
+
+        if (string.IsNullOrWhiteSpace(dias))
+            return string.Empty;
+
+        if (string.IsNullOrWhiteSpace(tipo))
+            return dias;
+
+        return tipo.ToLowerInvariant() switch
+        {
+            "básico" => $"{dias} - manual",
+            "basico" => $"{dias} - manual",
+
+            "intermediário" => $"{dias} - Automatico",
+            "intermediario" => $"{dias} - Automatico",
+
+            "superior" => $"{dias} - SUV Automatico",
+
+            _ => dias
         };
     }
 }
