@@ -10,6 +10,7 @@ public sealed class QuoteTemplateData
     public string LogoFrancaUrl { get; set; } = string.Empty;
 
     public string Proponente { get; set; } = string.Empty;
+    public string FipeCode { get; set; } = string.Empty;
     public string FipeValue { get; set; } = string.Empty;
     public string Vehicle { get; set; } = string.Empty;
     public string Plate { get; set; } = string.Empty;

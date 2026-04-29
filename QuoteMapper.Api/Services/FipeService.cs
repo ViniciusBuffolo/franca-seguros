@@ -15,6 +15,29 @@ namespace QuoteMapper.Api.Services
 
         public async Task<string> GetFipeValueAsync(FipeRequestDto request)
         {
+            var fipeCode = Uri.EscapeDataString(request.ModeloCodigoExterno);
+            var yearId = $"{request.AnoModelo}-{request.CodigoTipoCombustivel}";
+
+            var url = $"https://fipe.parallelum.com.br/api/v2/cars/{fipeCode}/years/{yearId}";
+
+            using var response = await _httpClient.GetAsync(url);
+
+            if (!response.IsSuccessStatusCode)
+                return string.Empty;
+
+            var json = await response.Content.ReadAsStringAsync();
+
+            using var doc = JsonDocument.Parse(json);
+
+            if (doc.RootElement.TryGetProperty("price", out var priceElement))
+                return priceElement.GetString() ?? string.Empty;
+
+            return string.Empty;
+        }
+
+        /*
+        public async Task<string> GetFipeValueAsync(FipeRequestDto request)
+        {
             var url = "https://veiculos.fipe.org.br/api/veiculos/ConsultarValorComTodosParametros";
 
             var form = new Dictionary<string, string>
@@ -46,5 +69,6 @@ namespace QuoteMapper.Api.Services
 
             return string.Empty;
         }
+        */
     }
 }

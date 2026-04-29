@@ -32,6 +32,7 @@ public sealed class QuoteTemplateRenderService : IQuoteTemplateRenderService
             ["{{LOGO_FRANCA_URL}}"] = Encode(data.LogoFrancaUrl),
 
             ["{{PROPONENTE}}"] = Encode(data.Proponente),
+            ["{{FIPE_CODE}}"] = Encode(data.FipeCode),
             ["{{FIPE_VALUE}}"] = Encode(data.FipeValue),
             ["{{VEHICLE}}"] = Encode(data.Vehicle),
             ["{{PLATE}}"] = Encode(data.Plate),

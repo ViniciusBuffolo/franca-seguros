@@ -26,6 +26,7 @@ public sealed class QuoteTemplateMapper : IQuoteTemplateMapper
             LogoFrancaUrl = $"{apiBaseUrl}/logos/franca.svg",
 
             Proponente = extracted.Proponente,
+            FipeCode = extracted.FipeCode,
             FipeValue = extracted.FipeValue,
             Vehicle = extracted.Vehicle,
             Plate = extracted.Plate,
