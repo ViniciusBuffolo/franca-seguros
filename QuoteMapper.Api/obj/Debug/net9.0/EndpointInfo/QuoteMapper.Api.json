@@ -26,6 +26,9 @@
                   },
                   "CoverageType": {
                     "$ref": "#/components/schemas/CoverageType"
+                  },
+                  "Insurer": {
+                    "type": "string"
                   }
                 }
               },
@@ -34,6 +37,9 @@
                   "style": "form"
                 },
                 "CoverageType": {
+                  "style": "form"
+                },
+                "Insurer": {
                   "style": "form"
                 }
               }

@@ -1,11 +1,12 @@
+using Microsoft.Extensions.FileProviders;
 using Microsoft.OpenApi.Models;
 using MyPdfApi.Models;
 using MyPdfApi.Services;
+using MyPdfApi.Services.Parsers;
 using QuoteMapper.Api.Interfaces;
 using QuoteMapper.Api.Services;
 using QuoteMapper.Api.Services.Parsers;
 using System.Text.Json.Serialization;
-using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -49,6 +50,23 @@ builder.Services.Configure<ChatPdfOptions>(
     builder.Configuration.GetSection("ChatPdf"));
 
 builder.Services.AddHttpClient<IChatPdfService, ChatPdfService>();
+
+// PromptBuilders
+builder.Services.AddScoped<QuotePromptBuilderFactory>();
+builder.Services.AddScoped<IQuotePromptBuilder, AllianzPromptBuilder>();
+builder.Services.AddScoped<IQuotePromptBuilder, AzulPromptBuilder>();
+builder.Services.AddScoped<IQuotePromptBuilder, BanestesPromptBuilder>();
+builder.Services.AddScoped<IQuotePromptBuilder, BradescoPromptBuilder>();
+builder.Services.AddScoped<IQuotePromptBuilder, DarwinPromptBuilder>();
+builder.Services.AddScoped<IQuotePromptBuilder, ItauPromptBuilder>();
+builder.Services.AddScoped<IQuotePromptBuilder, JustosPromptBuilder>();
+builder.Services.AddScoped<IQuotePromptBuilder, MapfrePromptBuilder>();
+builder.Services.AddScoped<IQuotePromptBuilder, MitsuiPromptBuilder>();
+builder.Services.AddScoped<IQuotePromptBuilder, PortoPromptBuilder>();
+builder.Services.AddScoped<IQuotePromptBuilder, SuhaiPromptBuilder>();
+builder.Services.AddScoped<IQuotePromptBuilder, TokioMarinePromptBuilder>();
+builder.Services.AddScoped<IQuotePromptBuilder, YelumPromptBuilder>();
+builder.Services.AddScoped<IQuotePromptBuilder, ZurichPromptBuilder>();
 
 // External services
 builder.Services.AddHttpClient<IFipeService, FipeService>();

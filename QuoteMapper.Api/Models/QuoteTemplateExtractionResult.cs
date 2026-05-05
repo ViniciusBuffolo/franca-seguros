@@ -2,6 +2,8 @@
 
 public sealed class QuoteTemplateExtractionResult
 {
+    public string Insurer { get; set; } = string.Empty;
+
     public string Proponente { get; set; } = string.Empty;
 
     public string FipeValue { get; set; } = string.Empty;
@@ -56,4 +58,6 @@ public sealed class PaymentRowData
     public bool CarneSemJuros { get; set; }
     public bool CartaoCreditoSemJuros { get; set; }
     public bool DebitoContaSemJuros { get; set; }
+
+    public string Insurer { get; set; } = string.Empty;
 }

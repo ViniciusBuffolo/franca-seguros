@@ -66,7 +66,7 @@
 
         .form-grid {
             display: grid;
-            grid-template-columns: 1.4fr 1fr auto;
+            grid-template-columns: 1.4fr 1fr 1fr auto;
             gap: 16px;
             align-items: end;
         }
@@ -233,6 +233,26 @@
                     </div>
 
                     <div class="field">
+                        <label for="insurer">Seguradora</label>
+                        <select id="insurer" name="insurer" required>
+                            <option value="Allianz" selected>Allianz</option>
+                            <option value="Zurich">Zurich</option>
+                            <option value="Azul">Azul</option>
+                            <option value="Banestes">Banestes</option>
+                            <option value="Bradesco">Bradesco</option>
+                            <option value="Darwin">Darwin</option>
+                            <option value="Itau">Itaú</option>
+                            <option value="Justos">Justos</option>
+                            <option value="Mapfre">Mapfre</option>
+                            <option value="Mitsui">Mitsui</option>
+                            <option value="Porto">Porto Seguro</option>
+                            <option value="Suhai">Suhai</option>
+                            <option value="TokioMarine">Tokio Marine</option>
+                            <option value="Yelum">Yelum</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
                         <label for="coverageType">Coverage Type</label>
                         <select id="coverageType" name="coverageType" required>
                             <option value="RouboEFurto">Roubo e Furto</option>
@@ -286,6 +306,7 @@
         const printBtn = document.getElementById("printBtn");
         const printSection = document.getElementById("printSection");
         const emptyState = document.getElementById("emptyState");
+        const insurerSelect = document.getElementById("insurer");
 
         function setStatus(message, type = "") {
             statusEl.className = "status";
@@ -297,34 +318,34 @@
 
         function injectPreviewFixes(html) {
             const fixStyle = `
-<style>
-html, body {
-        margin: 0 !important;
-        padding: 0 !important;
-        overflow-x: hidden !important;
-        overflow-y: hidden !important;
-}
+                <style>
+                html, body {
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        overflow-x: hidden !important;
+                        overflow-y: hidden !important;
+                }
 
-body {
-        width: 210mm !important;
-        max-width: 210mm !important;
-        min-height: auto !important;
-}
+                body {
+                        width: 210mm !important;
+                        max-width: 210mm !important;
+                        min-height: auto !important;
+                }
 
-.page {
-        overflow: visible !important;
-}
+                .page {
+                        overflow: visible !important;
+                }
 
-table {
-        table-layout: fixed;
-        word-break: break-word;
-}
+                table {
+                        table-layout: fixed;
+                        word-break: break-word;
+                }
 
-img {
-        max-width: 100% !important;
-        height: auto !important;
-}
-</style>`;
+                img {
+                        max-width: 100% !important;
+                        height: auto !important;
+                }
+                </style>`;
 
             if (html.includes("</head>")) {
                 return html.replace("</head>", `${fixStyle}</head>`);
@@ -379,6 +400,7 @@ img {
             event.preventDefault();
 
             const file = fileInput.files[0];
+            const insurer = insurerSelect.value;
             const coverageType = coverageTypeSelect.value;
 
             if (!file) {
@@ -395,6 +417,7 @@ img {
             try {
                 const formData = new FormData();
                 formData.append("File", file);
+                formData.append("Insurer", insurer);
                 formData.append("CoverageType", coverageType);
 
                 const response = await fetch("/api/pdf-extraction/extract-template-html", {

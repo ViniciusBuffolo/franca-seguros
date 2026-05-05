@@ -16,6 +16,11 @@
         "Name": "CoverageType",
         "Type": "System.String",
         "IsRequired": false
+      },
+      {
+        "Name": "Insurer",
+        "Type": "System.String",
+        "IsRequired": false
       }
     ],
     "ReturnTypes": []

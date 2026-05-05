@@ -10,4 +10,5 @@ public sealed class ExtractTemplateHtmlRequest
 
     [Required]
     public CoverageType CoverageType { get; set; }
+    public string Insurer { get; set; } = string.Empty;
 }

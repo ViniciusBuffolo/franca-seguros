@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MyPdfApi.Models;
 using MyPdfApi.Services;
+using MyPdfApi.Services.Parsers;
 using QuoteMapper.Api.Dtos;
 using QuoteMapper.Api.Interfaces;
 
@@ -14,17 +15,20 @@ public sealed class PdfExtractionController : ControllerBase
     private readonly IQuoteTemplateMapper _quoteTemplateMapper;
     private readonly IQuoteTemplateRenderService _quoteTemplateRenderService;
     private readonly IFipeService _fipeService;
+    private readonly QuotePromptBuilderFactory _promptBuilderFactory;
 
     public PdfExtractionController(
         IChatPdfService chatPdfService,
         IQuoteTemplateMapper quoteTemplateMapper,
         IQuoteTemplateRenderService quoteTemplateRenderService,
-        IFipeService fipeService)
+        IFipeService fipeService,
+        QuotePromptBuilderFactory promptBuilderFactory)
     {
         _chatPdfService = chatPdfService;
         _quoteTemplateMapper = quoteTemplateMapper;
         _quoteTemplateRenderService = quoteTemplateRenderService;
         _fipeService = fipeService;
+        _promptBuilderFactory = promptBuilderFactory;
     }
 
     [HttpPost("extract-template-html")]
@@ -42,12 +46,16 @@ public sealed class PdfExtractionController : ControllerBase
         try
         {
             var sourceId = await _chatPdfService.UploadPdfAsync(request.File, cancellationToken);
-            var prompt = BuildPrompt(request.CoverageType);
+            //var prompt = BuildPrompt(request.CoverageType);
+            var promptBuilder = _promptBuilderFactory.GetByInsurer(request.Insurer);
+            var prompt = promptBuilder.BuildPrompt(request.CoverageType);
 
             var extracted = await _chatPdfService.ExtractTemplateFieldsAsync(
                 sourceId,
                 prompt,
                 cancellationToken);
+
+            extracted.Insurer = request.Insurer;
 
             await TryFillFipeValueAsync(extracted, cancellationToken);
 
@@ -102,6 +110,7 @@ public sealed class PdfExtractionController : ControllerBase
         }
     }
 
+    /*
     private static string BuildPrompt(CoverageType coverageType)
     {
         var coverageTypeText = coverageType switch
@@ -288,5 +297,5 @@ public sealed class PdfExtractionController : ControllerBase
         """;
 
         return template.Replace("__COVERAGE_TYPE__", coverageTypeText);
-    }
+    }*/
 }

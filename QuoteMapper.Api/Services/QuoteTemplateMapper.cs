@@ -16,12 +16,19 @@ public sealed class QuoteTemplateMapper : IQuoteTemplateMapper
         var apiBaseUrl = _configuration["PublicApiBaseUrl"]?.TrimEnd('/')
                          ?? "https://localhost:5001";
 
+        var paymentRows = extracted.PaymentRows
+            .Where(row =>
+                !string.IsNullOrWhiteSpace(row.Carne) ||
+                !string.IsNullOrWhiteSpace(row.CartaoCredito) ||
+                !string.IsNullOrWhiteSpace(row.DebitoConta))
+            .ToList();
+
         return new QuoteTemplateData
         {
             IssueDate = DateTime.Now.ToString("dd/MM/yyyy"),
             City = "Cachoeiro de Itapemirim - ES",
 
-            LogoAllianzUrl = $"{apiBaseUrl}/logos/allianz.svg",
+            LogoAllianzUrl = $"{apiBaseUrl}/logos/{GetInsurerLogo(extracted.Insurer)}",
             LogoCorretoraUrl = $"{apiBaseUrl}/logos/corretora.svg",
             LogoFrancaUrl = $"{apiBaseUrl}/logos/franca.svg",
 
@@ -62,11 +69,36 @@ public sealed class QuoteTemplateMapper : IQuoteTemplateMapper
             ResideEm = extracted.ResideEm,
             Condutores18a25 = extracted.Condutores18a25,
 
-            PaymentRows = extracted.PaymentRows,
+            PaymentRows = paymentRows,
 
             BrokerContactName = "França Seguros",
             BrokerContactPhone = "(28) 99917-5338",
             BrokerContactEmail = "francaseguros@gmail.com"
+        };
+    }
+
+    private static string GetInsurerLogo(string? insurer)
+    {
+        return insurer?.Trim().ToLowerInvariant() switch
+        {
+            "allianz" => "allianz.svg",
+            "azul" => "azul.svg",
+            "banestes" => "banestes.svg",
+            "bradesco" => "bradesco.svg",
+            "darwin" => "darwin-seguros.svg",
+            "itau" => "Itau-Seguros.svg",
+            "itaú" => "Itau-Seguros.svg",
+            "justos" => "justos.svg",
+            "mapfre" => "Mapfre.svg",
+            "mitsui" => "Mitsui-Seguros.svg",
+            "porto" => "porto.svg",
+            "suhai" => "suhai-seguradora.svg",
+            "tokiomarine" => "tokio-marine-seguradora.svg",
+            "tokio marine" => "tokio-marine-seguradora.svg",
+            "yelum" => "Yelum.svg",
+            "zurich" => "zurich.svg",
+
+            _ => "allianz.svg"
         };
     }
 
@@ -86,10 +118,10 @@ public sealed class QuoteTemplateMapper : IQuoteTemplateMapper
             "básico" => $"{dias} - manual",
             "basico" => $"{dias} - manual",
 
-            "intermediário" => $"{dias} - Automatico",
-            "intermediario" => $"{dias} - Automatico",
+            "intermediário" => $"{dias} - Automático",
+            "intermediario" => $"{dias} - Automático",
 
-            "superior" => $"{dias} - SUV Automatico",
+            "superior" => $"{dias} - SUV Automático",
 
             _ => dias
         };
