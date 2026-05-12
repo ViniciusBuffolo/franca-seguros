@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Franca Seguros - Revisão de Cotação</title>
+
     <style>
         * {
             box-sizing: border-box;
@@ -21,7 +22,8 @@
             --card: #ffffff;
         }
 
-        html, body {
+        html,
+        body {
             margin: 0;
             padding: 0;
         }
@@ -129,6 +131,24 @@
                 background: #d1d5db;
             }
 
+        .btn-edit-active {
+            background: var(--primary);
+            color: white;
+        }
+
+            .btn-edit-active:hover {
+                background: var(--primary-dark);
+            }
+
+        .btn-cancel {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+            .btn-cancel:hover {
+                background: #fecaca;
+            }
+
         button:disabled {
             opacity: 0.6;
             cursor: not-allowed;
@@ -185,6 +205,8 @@
             margin-top: 16px;
             display: flex;
             justify-content: flex-end;
+            gap: 12px;
+            flex-wrap: wrap;
         }
 
         .empty-state {
@@ -196,10 +218,6 @@
         @media (max-width: 980px) {
             .form-grid {
                 grid-template-columns: 1fr;
-            }
-
-            .preview-shell {
-                padding: 0;
             }
 
             .preview-frame {
@@ -217,6 +235,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="header">
@@ -290,6 +309,8 @@
             </div>
 
             <div class="bottom-actions" id="printSection" style="display:none;">
+                <button type="button" class="btn-secondary" id="editBtn">Editar</button>
+                <button type="button" class="btn-cancel" id="cancelEditBtn" style="display:none;">Cancelar edição</button>
                 <button type="button" class="btn-secondary" id="printBtn">Imprimir</button>
             </div>
         </div>
@@ -304,48 +325,503 @@
         const previewContainer = document.getElementById("previewContainer");
         const previewFrame = document.getElementById("previewFrame");
         const printBtn = document.getElementById("printBtn");
+        const editBtn = document.getElementById("editBtn");
+        const cancelEditBtn = document.getElementById("cancelEditBtn");
         const printSection = document.getElementById("printSection");
         const emptyState = document.getElementById("emptyState");
         const insurerSelect = document.getElementById("insurer");
 
+        let isEditing = false;
+        let currentHtml = "";
+        let htmlBeforeEditing = "";
+
+        const editableLabelTypes = {
+            "proponente": "text",
+            "tabela fipe": "text",
+            "veiculo": "text",
+            "placa": "text",
+
+            "principal condutor": "text",
+            "estado civil": "text",
+            "reside em": "text",
+            "uso do veiculo": "text",
+            "cep de pernoite": "text",
+            "reside com pessoas entre 18 a 25 anos?": "text",
+
+            "danos materiais": "currency",
+            "danos corporais": "currency",
+            "danos morais": "currency",
+            "app - morte": "currency",
+            "app - invalidez permanente": "currency",
+            "assistencia guincho": "text",
+            "carro reserva": "text",
+
+            "franquia para-brisa": "currency",
+            "franquia vidro lateral": "currency",
+            "franquia farol convencional": "currency",
+            "franquia lanterna convencional": "currency",
+            "franquia farol xenon/led": "currency",
+            "franquia lanterna led": "currency",
+            "franquia retrovisor externo": "currency",
+            "franquia lanterna auxiliar": "currency",
+            "franquia protecao pneu e roda": "currency",
+            "franquia pequenos reparos": "currency",
+            "franquia do veiculo": "currency"
+        };
+
         function setStatus(message, type = "") {
             statusEl.className = "status";
+
             if (type) {
                 statusEl.classList.add(type);
             }
+
             statusEl.textContent = message;
+        }
+
+        function normalizeText(value) {
+            return String(value || "")
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .replace(/\s+/g, " ")
+                .toLowerCase()
+                .trim();
+        }
+
+        function isEditableLabelText(text) {
+            return Object.prototype.hasOwnProperty.call(editableLabelTypes, normalizeText(text));
+        }
+
+        function formatCurrencyBR(value) {
+            const cleanValue = String(value || "")
+                .replace("R$", "")
+                .replace(/\s/g, "")
+                .replace(/\./g, "")
+                .replace(",", ".")
+                .replace(/[^\d.]/g, "");
+
+            if (!cleanValue) return "";
+
+            const numberValue = Number(cleanValue);
+
+            if (Number.isNaN(numberValue)) return "";
+
+            return numberValue.toLocaleString("pt-BR", {
+                style: "currency",
+                currency: "BRL",
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function clearSelection(doc) {
+            const selection = doc.getSelection?.();
+
+            if (selection) {
+                selection.removeAllRanges();
+            }
+        }
+
+        function isCandidateValueElement(el) {
+            if (!el) return false;
+            if (el.dataset?.editableLabel === "true") return false;
+
+            const text = el.textContent.trim();
+
+            if (isEditableLabelText(text)) return false;
+
+            const tag = el.tagName.toLowerCase();
+
+            if (!["td", "div", "span", "strong", "b", "p"].includes(tag)) {
+                return false;
+            }
+
+            if (el.children.length > 3) return false;
+
+            return true;
+        }
+
+        function rectsOverlapVertically(a, b) {
+            return a.top < b.bottom && a.bottom > b.top;
+        }
+
+        function findValueElementForLabel(labelEl) {
+            const doc = labelEl.ownerDocument;
+            const labelText = normalizeText(labelEl.textContent);
+            const type = editableLabelTypes[labelText];
+
+            if (!type) return null;
+
+            const labelRect = labelEl.getBoundingClientRect();
+            const parent = labelEl.parentElement;
+
+            if (parent) {
+                const siblings = Array.from(parent.children);
+                const labelIndex = siblings.indexOf(labelEl);
+
+                if (labelIndex >= 0) {
+                    for (let i = labelIndex + 1; i < siblings.length; i++) {
+                        const sibling = siblings[i];
+
+                        if (isCandidateValueElement(sibling)) {
+                            const siblingText = sibling.textContent.trim();
+
+                            if (!isEditableLabelText(siblingText)) {
+                                return sibling;
+                            }
+                        }
+                    }
+                }
+            }
+
+            const row = labelEl.closest("tr");
+
+            if (row) {
+                const cells = Array.from(row.querySelectorAll("td, th"));
+                const cellIndex = cells.indexOf(labelEl);
+
+                if (cellIndex >= 0) {
+                    for (let i = cellIndex + 1; i < cells.length; i++) {
+                        const cell = cells[i];
+
+                        if (isCandidateValueElement(cell)) {
+                            return cell;
+                        }
+                    }
+                }
+            }
+
+            const candidates = Array.from(doc.body.querySelectorAll("td, div, span, strong, b, p"))
+                .filter(isCandidateValueElement)
+                .filter(candidate => candidate !== labelEl);
+
+            const sameLineCandidates = candidates
+                .map(candidate => ({
+                    el: candidate,
+                    rect: candidate.getBoundingClientRect()
+                }))
+                .filter(item => {
+                    const rect = item.rect;
+
+                    return (
+                        rect.width > 0 &&
+                        rect.height > 0 &&
+                        rect.left > labelRect.right &&
+                        rectsOverlapVertically(labelRect, rect)
+                    );
+                })
+                .sort((a, b) => {
+                    const aDistance = Math.abs(a.rect.left - labelRect.right);
+                    const bDistance = Math.abs(b.rect.left - labelRect.right);
+
+                    return aDistance - bDistance;
+                });
+
+            if (sameLineCandidates.length > 0) {
+                return sameLineCandidates[0].el;
+            }
+
+            const belowCandidates = candidates
+                .map(candidate => ({
+                    el: candidate,
+                    rect: candidate.getBoundingClientRect()
+                }))
+                .filter(item => {
+                    const rect = item.rect;
+
+                    return (
+                        rect.width > 0 &&
+                        rect.height > 0 &&
+                        rect.top >= labelRect.bottom &&
+                        rect.top - labelRect.bottom <= 36 &&
+                        Math.abs(rect.left - labelRect.left) <= 20
+                    );
+                })
+                .sort((a, b) => {
+                    const aDistance = Math.abs(a.rect.top - labelRect.bottom);
+                    const bDistance = Math.abs(b.rect.top - labelRect.bottom);
+
+                    return aDistance - bDistance;
+                });
+
+            if (belowCandidates.length > 0) {
+                return belowCandidates[0].el;
+            }
+
+            return null;
+        }
+
+        function addPaymentTableEditableElements(doc, editableElements) {
+            const tables = doc.body.querySelectorAll("table");
+
+            tables.forEach(table => {
+                const rows = table.querySelectorAll("tr");
+
+                rows.forEach(row => {
+                    const cells = Array.from(row.querySelectorAll("td"));
+
+                    if (cells.length < 2) return;
+
+                    cells.forEach((cell, index) => {
+                        if (index === 0) return;
+
+                        const text = cell.textContent.trim();
+
+                        if (
+                            /^R\$\s*[\d.,]+$/i.test(text) ||
+                            /^[\d.]+,\d{2}$/.test(text) ||
+                            /^\d+$/.test(text)
+                        ) {
+                            editableElements.add(cell);
+                            cell.dataset.valueType = "currency";
+                        }
+                    });
+                });
+            });
+        }
+
+        function getEditableValueElements(doc) {
+            const editableElements = new Set();
+
+            const possibleLabels = Array.from(doc.body.querySelectorAll("td, div, span, strong, b, p"));
+
+            possibleLabels.forEach(labelEl => {
+                const labelText = normalizeText(labelEl.textContent);
+
+                if (!editableLabelTypes[labelText]) return;
+
+                labelEl.dataset.editableLabel = "true";
+
+                const valueEl = findValueElementForLabel(labelEl);
+
+                if (!valueEl) return;
+
+                const valueText = normalizeText(valueEl.textContent);
+
+                if (editableLabelTypes[valueText]) return;
+
+                valueEl.dataset.valueType = editableLabelTypes[labelText];
+
+                if (!valueEl.textContent.trim()) {
+                    valueEl.innerHTML = "&nbsp;";
+                }
+
+                editableElements.add(valueEl);
+            });
+
+            addPaymentTableEditableElements(doc, editableElements);
+
+            return Array.from(editableElements);
+        }
+
+        function normalizeInitialCurrencyValues(doc) {
+            const editableElements = getEditableValueElements(doc);
+
+            editableElements.forEach(el => {
+                const valueType = el.dataset.valueType;
+                const text = el.textContent.trim();
+
+                if (valueType !== "currency") return;
+                if (!text) return;
+                if (/^R\$\s*[\d.,]+$/i.test(text)) return;
+
+                if (/^\d+$/.test(text) || /^[\d.]+,\d{2}$/.test(text)) {
+                    el.textContent = formatCurrencyBR(text);
+                }
+            });
+        }
+
+        function normalizeEditableValue(el) {
+            const currentText = el.textContent.trim();
+            const originalValue = el.dataset.originalValue || "";
+
+            if (!currentText || currentText === "\u00A0") {
+                if (originalValue) {
+                    el.textContent = originalValue;
+                } else {
+                    el.innerHTML = "&nbsp;";
+                }
+
+                return;
+            }
+
+            if (el.dataset.valueType === "currency") {
+                el.textContent = formatCurrencyBR(currentText);
+            } else {
+                el.textContent = currentText;
+            }
+        }
+
+        function normalizeAllEditableValues(doc) {
+            const editableElements = doc.body.querySelectorAll("[data-editable-value='true']");
+
+            editableElements.forEach(el => {
+                normalizeEditableValue(el);
+            });
+        }
+
+        function enableEditableValue(el) {
+            el.setAttribute("contenteditable", "true");
+            el.setAttribute("data-editable-value", "true");
+
+            if (!el.dataset.valueType) {
+                el.dataset.valueType = "text";
+            }
+
+            if (!el.textContent.trim()) {
+                el.innerHTML = "&nbsp;";
+            }
+
+            if (el.dataset.listenersAttached === "true") return;
+
+            el.dataset.listenersAttached = "true";
+
+            el.addEventListener("focus", () => {
+                const currentText = el.textContent.trim();
+
+                el.dataset.originalValue = currentText === "\u00A0" ? "" : currentText;
+
+                if (el.dataset.valueType === "currency") {
+                    if (!currentText || currentText === "\u00A0") {
+                        el.textContent = "";
+                        return;
+                    }
+
+                    el.textContent = currentText
+                        .replace("R$", "")
+                        .replace(/\s/g, "")
+                        .replace(/\./g, "")
+                        .replace(",00", "")
+                        .trim();
+                }
+            });
+
+            el.addEventListener("keydown", event => {
+                const allowedKeys = [
+                    "Backspace",
+                    "Delete",
+                    "Tab",
+                    "ArrowLeft",
+                    "ArrowRight",
+                    "ArrowUp",
+                    "ArrowDown",
+                    "Home",
+                    "End",
+                    "Enter"
+                ];
+
+                if (allowedKeys.includes(event.key)) {
+                    if (event.key === "Enter") {
+                        event.preventDefault();
+                        el.blur();
+                    }
+
+                    return;
+                }
+
+                if (el.dataset.valueType === "currency" && !/^\d$/.test(event.key)) {
+                    event.preventDefault();
+                }
+            });
+
+            el.addEventListener("blur", () => {
+                normalizeEditableValue(el);
+                resizePreviewFrame();
+            });
+
+            el.addEventListener("input", resizePreviewFrame);
+        }
+
+        function disableEditableValue(el) {
+            normalizeEditableValue(el);
+
+            el.removeAttribute("contenteditable");
+            el.removeAttribute("data-editable-value");
+
+            if (el.innerHTML.trim() === "&nbsp;") {
+                el.innerHTML = "";
+            }
+        }
+
+        function makeOnlyValuesEditable(doc, enabled) {
+            const oldEditableElements = doc.body.querySelectorAll("[data-editable-value='true']");
+
+            oldEditableElements.forEach(el => {
+                if (!enabled) {
+                    disableEditableValue(el);
+                }
+            });
+
+            if (!enabled) {
+                const labels = doc.body.querySelectorAll("[data-editable-label='true']");
+
+                labels.forEach(label => {
+                    label.removeAttribute("data-editable-label");
+                });
+
+                return;
+            }
+
+            const editableElements = getEditableValueElements(doc);
+
+            editableElements.forEach(enableEditableValue);
+            normalizeInitialCurrencyValues(doc);
         }
 
         function injectPreviewFixes(html) {
             const fixStyle = `
-                <style>
-                html, body {
-                        margin: 0 !important;
-                        padding: 0 !important;
-                        overflow-x: hidden !important;
-                        overflow-y: hidden !important;
-                }
+                    <style>
+                        html, body {
+                            margin: 0 !important;
+                            padding: 0 !important;
+                            overflow-x: hidden !important;
+                            overflow-y: hidden !important;
+                        }
 
-                body {
-                        width: 210mm !important;
-                        max-width: 210mm !important;
-                        min-height: auto !important;
-                }
+                        body {
+                            width: 210mm !important;
+                            max-width: 210mm !important;
+                            min-height: auto !important;
+                        }
 
-                .page {
-                        overflow: visible !important;
-                }
+                        .page {
+                            overflow: visible !important;
+                        }
 
-                table {
-                        table-layout: fixed;
-                        word-break: break-word;
-                }
+                        table {
+                            table-layout: fixed;
+                            word-break: break-word;
+                        }
 
-                img {
-                        max-width: 100% !important;
-                        height: auto !important;
-                }
-                </style>`;
+                        img {
+                            max-width: 100% !important;
+                            height: auto !important;
+                        }
+
+                        body.preview-editing [data-editable-value="true"] {
+                            cursor: text !important;
+                            outline: 1px dashed rgba(15, 118, 110, 0.45);
+                            outline-offset: 2px;
+                            min-width: 70px;
+                        }
+
+                        body.preview-editing [data-editable-value="true"]:focus {
+                            outline: 2px solid #0f766e !important;
+                            background: #ecfdf5 !important;
+                        }
+
+                        body.preview-editing [data-editable-label="true"] {
+                            cursor: default !important;
+                        }
+
+                        @media print {
+                            body.preview-editing [data-editable-value="true"],
+                            body.preview-editing [data-editable-value="true"]:focus {
+                                outline: none !important;
+                                background: transparent !important;
+                            }
+                        }
+                    </style>`;
 
             if (html.includes("</head>")) {
                 return html.replace("</head>", `${fixStyle}</head>`);
@@ -367,6 +843,7 @@
         function resizePreviewFrame() {
             try {
                 const doc = previewFrame.contentDocument || previewFrame.contentWindow?.document;
+
                 if (!doc) return;
 
                 const body = doc.body;
@@ -396,6 +873,94 @@
             }
         }
 
+        function updateEditButtons() {
+            if (isEditing) {
+                editBtn.textContent = "Salvar edição";
+                editBtn.classList.add("btn-edit-active");
+                cancelEditBtn.style.display = "inline-block";
+            } else {
+                editBtn.textContent = "Editar";
+                editBtn.classList.remove("btn-edit-active");
+                cancelEditBtn.style.display = "none";
+            }
+        }
+
+        function setEditMode(enabled) {
+            const doc = previewFrame.contentDocument || previewFrame.contentWindow?.document;
+
+            if (!doc || !doc.body) {
+                setStatus("A pré-visualização ainda não está pronta para edição.", "error");
+                return;
+            }
+
+            isEditing = enabled;
+
+            if (enabled) {
+                htmlBeforeEditing = doc.documentElement.outerHTML;
+
+                makeOnlyValuesEditable(doc, true);
+                doc.body.classList.add("preview-editing");
+
+                setStatus("Modo edição ativado. Clique somente nos valores para alterar.", "success");
+            } else {
+                const activeElement = doc.activeElement;
+
+                if (activeElement && activeElement.dataset?.editableValue === "true") {
+                    activeElement.blur();
+                }
+
+                normalizeAllEditableValues(doc);
+
+                makeOnlyValuesEditable(doc, false);
+                doc.body.classList.remove("preview-editing");
+                clearSelection(doc);
+
+                currentHtml = doc.documentElement.outerHTML;
+                htmlBeforeEditing = "";
+
+                setStatus("Edição salva. Você já pode imprimir.", "success");
+            }
+
+            updateEditButtons();
+            resizePreviewFrame();
+            requestAnimationFrame(resizePreviewFrame);
+            setTimeout(resizePreviewFrame, 150);
+        }
+
+        function cancelEditMode() {
+            if (!isEditing || !htmlBeforeEditing) return;
+
+            isEditing = false;
+            currentHtml = htmlBeforeEditing;
+
+            previewFrame.onload = () => {
+                const doc = previewFrame.contentDocument || previewFrame.contentWindow?.document;
+
+                if (doc?.body) {
+                    doc.body.classList.remove("preview-editing");
+                    clearSelection(doc);
+                }
+
+                htmlBeforeEditing = "";
+                updateEditButtons();
+
+                setStatus("Edição cancelada. As alterações foram descartadas.", "success");
+
+                resizePreviewFrame();
+                requestAnimationFrame(resizePreviewFrame);
+                setTimeout(resizePreviewFrame, 150);
+                setTimeout(resizePreviewFrame, 300);
+            };
+
+            previewFrame.srcdoc = currentHtml;
+        }
+
+        function resetEditMode() {
+            isEditing = false;
+            htmlBeforeEditing = "";
+            updateEditButtons();
+        }
+
         form.addEventListener("submit", async (event) => {
             event.preventDefault();
 
@@ -412,6 +977,8 @@
             printSection.style.display = "none";
             previewContainer.style.display = "none";
             emptyState.style.display = "block";
+            resetEditMode();
+
             setStatus("Enviando PDF e gerando HTML...");
 
             try {
@@ -440,10 +1007,23 @@
                 const html = await response.text();
                 const finalHtml = normalizeReturnedHtml(html);
 
+                currentHtml = finalHtml;
+
                 previewFrame.onload = () => {
+                    const doc = previewFrame.contentDocument || previewFrame.contentWindow?.document;
+
+                    if (doc?.body) {
+                        doc.body.classList.remove("preview-editing");
+
+                        doc.addEventListener("input", () => {
+                            resizePreviewFrame();
+                        });
+                    }
+
                     previewContainer.style.display = "block";
                     printSection.style.display = "flex";
                     emptyState.style.display = "none";
+
                     setStatus("HTML gerado com sucesso. Revise abaixo antes de imprimir.", "success");
 
                     resizePreviewFrame();
@@ -462,12 +1042,33 @@
             }
         });
 
+        editBtn.addEventListener("click", () => {
+            setEditMode(!isEditing);
+        });
+
+        cancelEditBtn.addEventListener("click", () => {
+            cancelEditMode();
+        });
+
         printBtn.addEventListener("click", () => {
             const frameWindow = previewFrame.contentWindow;
-            if (!frameWindow) {
+            const doc = previewFrame.contentDocument || frameWindow?.document;
+
+            if (!frameWindow || !doc) {
                 setStatus("A pré-visualização ainda não está pronta para impressão.", "error");
                 return;
             }
+
+            if (isEditing) {
+                setEditMode(false);
+            }
+
+            doc.body?.classList.remove("preview-editing");
+
+            const editableElements = doc.body.querySelectorAll("[data-editable-value='true']");
+            editableElements.forEach(disableEditableValue);
+
+            clearSelection(doc);
 
             frameWindow.focus();
             frameWindow.print();

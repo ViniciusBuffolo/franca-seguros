@@ -72,4 +72,4 @@ C:\Dev\Franca_Seguros\Backend\QuoteMapper.Api\bin\Debug\net9.0\Templates\Logos\Y
 C:\Dev\Franca_Seguros\Backend\QuoteMapper.Api\bin\Debug\net9.0\Templates\Logos\zurich.svg
 C:\Dev\Franca_Seguros\Backend\QuoteMapper.Api\obj\Debug\net9.0\QuoteMapper.Api.sourcelink.json
 C:\Dev\Franca_Seguros\Backend\QuoteMapper.Api\bin\Debug\net9.0\QuoteMapper.Api.staticwebassets.runtime.json
-C:\Dev\Franca_Seguros\Backend\QuoteMapper.Api\obj\Debug\net9.0\compressed\6h2mr0erbo-29qb49r9gg.gz
+C:\Dev\Franca_Seguros\Backend\QuoteMapper.Api\obj\Debug\net9.0\compressed\6h2mr0erbo-2ptahr3pbv.gz
