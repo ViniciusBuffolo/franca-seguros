@@ -30,11 +30,21 @@ namespace QuoteMapper.Api.Services.Parsers
             data.MaritalStatus = Extract(normalizedText, @"Estado Civil principal condutor\s*(.*?)\s*Nome Social");
             data.CoversDrivers18To25 = normalizedText.Contains("Não e estou ciente", StringComparison.OrdinalIgnoreCase) ? "Não" : null;
 
-            data.Vehicle = Extract(normalizedText, @"Fabricante Veículo.*?HYUNDAI\s*(HB20.*?)\s*Flex", System.Text.RegularExpressions.RegexOptions.Singleline);
+            data.Vehicle = Extract(
+                normalizedText,
+                @"CAOA CHERY\s+(TIGGO.*?)\s*Gasolina",
+                System.Text.RegularExpressions.RegexOptions.Singleline
+            );
             data.Vehicle ??= Extract(normalizedText, @"Veículo\s*(.*?)\s*Combust[ií]vel");
-            data.FipeCode = Extract(normalizedText, @"Código FIPE\s*(015090\-8|\d+\-\d)");
-            data.Plate = Extract(normalizedText, @"Placa\s*(OYG\-?4A16|[A-Z0-9\-]+)");
-            data.Chassis = Extract(normalizedText, @"Chassi\s*(9BH[A-Z0-9]+)");
+            data.FipeCode = Extract(normalizedText, @"Código FIPE\s*(\d{6,7}\-\d)");
+            data.Plate = Extract(
+                normalizedText,
+                @"Seguro Novo\s+\d{2}/\d{2}/\d{4}\s*-\s*\d{2}/\d{2}/\d{4}\s+Sim\s+([A-Z]{3}\-?\d[A-Z0-9]\d{2})"
+            );
+            data.Chassis = Extract(
+                normalizedText,
+                @"Seguro Novo\s+\d{2}/\d{2}/\d{4}\s*-\s*\d{2}/\d{2}/\d{4}\s+Sim\s+[A-Z]{3}\-?\d[A-Z0-9]\d{2}\s+([A-Z0-9]{10,})"
+            );
             data.YearModel = Extract(normalizedText, @"Ano modelo\s*(\d{4})");
             data.ZipCode = Extract(normalizedText, @"CEP de pernoite\s*(\d{5}\-?\d{3})");
             data.UsageType = Extract(normalizedText, @"Tipo de utilização\s*(.*?)\s*Dispositivo comodato");

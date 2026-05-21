@@ -46,6 +46,7 @@ public sealed class QuoteTemplateExtractionResult
     public List<PaymentRowData> PaymentRows { get; set; } = new();
     public List<int> PaginasReferencia { get; set; } = new();
     public string RawResponse { get; set; } = string.Empty;
+    public string Combustivel { get; set; } = string.Empty;
 }
 
 public sealed class PaymentRowData

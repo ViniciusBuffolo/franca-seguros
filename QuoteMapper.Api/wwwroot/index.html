@@ -271,9 +271,9 @@
                         </select>
                     </div>
 
-                    <div class="field">
+                    <div class="field" id="coverageTypeField">
                         <label for="coverageType">Coverage Type</label>
-                        <select id="coverageType" name="coverageType" required>
+                        <select id="coverageType" name="coverageType">
                             <option value="RouboEFurto">Roubo e Furto</option>
                             <option value="Basico">Básico</option>
                             <option value="Ampliado">Ampliado</option>
@@ -316,7 +316,7 @@
         </div>
 
         <div>
-            <p>V.16</p>
+            <p>V.17</p>
         </div>
     </div>
 
@@ -374,6 +374,19 @@
             "franquia pequenos reparos": "currency",
             "franquia do veiculo": "currency"
         };
+
+        const coverageTypeField = document.getElementById("coverageTypeField");
+
+        function updateCoverageTypeVisibility() {
+            const isAllianz = insurerSelect.value === "Allianz";
+
+            coverageTypeField.style.display = isAllianz ? "flex" : "none";
+            coverageTypeSelect.required = isAllianz;
+            coverageTypeSelect.disabled = !isAllianz;
+        }
+
+        insurerSelect.addEventListener("change", updateCoverageTypeVisibility);
+        updateCoverageTypeVisibility();
 
         function setStatus(message, type = "") {
             statusEl.className = "status";
@@ -972,7 +985,7 @@
 
             const file = fileInput.files[0];
             const insurer = insurerSelect.value;
-            const coverageType = coverageTypeSelect.value;
+            const coverageType = insurer === "Allianz" ? coverageTypeSelect.value : "";
 
             if (!file) {
                 setStatus("Selecione um arquivo PDF.", "error");
@@ -991,7 +1004,9 @@
                 const formData = new FormData();
                 formData.append("File", file);
                 formData.append("Insurer", insurer);
-                formData.append("CoverageType", coverageType);
+                if (insurer === "Allianz") {
+                    formData.append("CoverageType", coverageType);
+                }
 
                 const response = await fetch("/api/pdf-extraction/extract-template-html", {
                     method: "POST",

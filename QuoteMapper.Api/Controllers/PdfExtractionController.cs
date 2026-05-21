@@ -92,7 +92,7 @@ public sealed class PdfExtractionController : ControllerBase
             var request = new FipeRequestDto
             {
                 CodigoTabelaReferencia = 173,
-                CodigoTipoCombustivel = 5,
+                CodigoTipoCombustivel = ResolveCodigoTipoCombustivel(extracted.Combustivel),
                 AnoModelo = anoModelo,
                 ModeloCodigoExterno = fipeCode
             };
@@ -108,6 +108,23 @@ public sealed class PdfExtractionController : ControllerBase
         {
             // Não quebra o fluxo caso a consulta FIPE falhe.
         }
+    }
+
+    private static int ResolveCodigoTipoCombustivel(string? combustivel)
+    {
+        var value = (combustivel ?? string.Empty)
+            .Trim()
+            .ToUpperInvariant();
+
+        return value switch
+        {
+            "GASOLINA" => 1,
+            "FLEX" => 1,
+            "ALCOOL" => 2,
+            "ÁLCOOL" => 2,
+            "DIESEL" => 3,
+            _ => 1
+        };
     }
 
     /*
