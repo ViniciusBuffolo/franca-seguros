@@ -1,9 +1,10 @@
 services:
   api:
     build:
-      context: .
+      context: ./QuoteMapper.Api
       dockerfile: Dockerfile
     container_name: franca-seguros-api
+    restart: unless-stopped
     ports:
       - "8080:8080"
     environment:
