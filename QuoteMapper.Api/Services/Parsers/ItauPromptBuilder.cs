@@ -70,8 +70,11 @@ public sealed class ItauPromptBuilder : IQuotePromptBuilder
             REGRAS DE FORMAS DE PAGAMENTO:
             - Procure a seção "FORMAS DE PAGAMENTO".
             - Para cartaoCredito, use a tabela "TODAS CARTÃO DE CRÉDITO - DEMAIS BANDEIRAS".
-            - Para debitoConta, use a tabela "TODAS DÉBITO C. CORRENTE" ou "1 DEBITO C. CORRENTE / DEMAIS CARNÊ".
+            - Para debitoConta, use a tabela "TODAS DÉBITO C. CORRENTE".
             - Para carne, use a tabela "1 BOLETO / DEMAIS CARNÊ".
+            - Para debitoConta, priorize a tabela de debito em conta puro, nao a tabela mista de debito/carne.
+            - Para carne, use apenas a tabela de boleto/carne.
+            - Nao copie valores de debitoConta para carne.
             - Use somente o valor da parcela.
             - Não inclua o valor de juros entre parênteses.
             - No campo parcela, use "01", "02", "03" ... "12".
@@ -82,6 +85,9 @@ public sealed class ItauPromptBuilder : IQuotePromptBuilder
             - Se abaixo do valor estiver escrito "(s/juros)" ou "s/juros", marque o booleano correspondente como true.
             - Se estiver escrito "juros", marque como false.
             - Se o valor estiver vazio ou "-", marque como false.
+            - Regra fixa do Itau: carneSemJuros deve ser true somente nas parcelas 01, 02, 03 e 04.
+            - Regra fixa do Itau: debitoContaSemJuros deve ser true somente nas parcelas 01 ate 10.
+            - Regra fixa do Itau: para carne, parcelas 05 ate 12 sempre possuem juros, mesmo que exista valor.
 
             Retorne exatamente nesta estrutura:
 

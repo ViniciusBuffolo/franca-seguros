@@ -1,5 +1,7 @@
 using QuoteMapper.Api.Interfaces;
 using QuoteMapper.Api.Models;
+using System.Globalization;
+using System.Text;
 
 namespace QuoteMapper.Api.Services;
 
@@ -23,6 +25,8 @@ public sealed class QuoteTemplateMapper : IQuoteTemplateMapper
                 !string.IsNullOrWhiteSpace(row.CartaoCredito) ||
                 !string.IsNullOrWhiteSpace(row.DebitoConta))
             .ToList();
+
+        ApplyInsurerPaymentRules(extracted.Insurer, paymentRows);
 
         return new QuoteTemplateData
         {
@@ -101,6 +105,57 @@ public sealed class QuoteTemplateMapper : IQuoteTemplateMapper
 
             _ => "allianz.svg"
         };
+    }
+
+    private static void ApplyInsurerPaymentRules(string? insurer, List<PaymentRowData> paymentRows)
+    {
+        if (!IsItau(insurer))
+            return;
+
+        foreach (var row in paymentRows)
+        {
+            var parcela = ParseParcela(row.Parcela);
+
+            row.CarneSemJuros = parcela is >= 1 and <= 4 && HasPaymentValue(row.Carne);
+            row.DebitoContaSemJuros = parcela is >= 1 and <= 10 && HasPaymentValue(row.DebitoConta);
+        }
+    }
+
+    private static bool IsItau(string? insurer)
+    {
+        var normalized = RemoveDiacritics(insurer ?? string.Empty)
+            .Trim()
+            .ToLowerInvariant();
+
+        return normalized == "itau" || normalized.StartsWith("ita");
+    }
+
+    private static string RemoveDiacritics(string value)
+    {
+        var normalized = value.Normalize(NormalizationForm.FormD);
+        var sb = new StringBuilder(normalized.Length);
+
+        foreach (var c in normalized)
+        {
+            if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+                sb.Append(c);
+        }
+
+        return sb.ToString().Normalize(NormalizationForm.FormC);
+    }
+
+    private static int? ParseParcela(string? parcela)
+    {
+        return int.TryParse((parcela ?? string.Empty).Trim(), out var parsed)
+            ? parsed
+            : null;
+    }
+
+    private static bool HasPaymentValue(string? value)
+    {
+        var normalized = (value ?? string.Empty).Trim();
+
+        return normalized.Length > 0 && normalized != "-";
     }
 
     private static string FormatCarroReserva(string? carroReserva, string? tipoCarroReserva)
