@@ -3,3 +3,24 @@
 ################################################################################
 
 /.vs
+
+# Build outputs
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Local application files
+Uploads/
+
+# IDE/editor
+.vscode/
+.idea/
+
+# OS files
+Thumbs.db
+Desktop.ini

@@ -1,9 +1,7 @@
 using Microsoft.Extensions.FileProviders;
 using Microsoft.OpenApi.Models;
-using MyPdfApi.Models;
-using MyPdfApi.Services;
-using MyPdfApi.Services.Parsers;
 using QuoteMapper.Api.Interfaces;
+using QuoteMapper.Api.Models;
 using QuoteMapper.Api.Services;
 using QuoteMapper.Api.Services.Parsers;
 using System.Text.Json.Serialization;

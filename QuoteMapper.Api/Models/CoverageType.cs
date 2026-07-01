@@ -1,6 +1,6 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 
-namespace MyPdfApi.Models;
+namespace QuoteMapper.Api.Models;
 
 public enum CoverageType
 {

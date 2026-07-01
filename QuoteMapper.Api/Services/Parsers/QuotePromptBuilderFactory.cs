@@ -1,4 +1,4 @@
-﻿namespace MyPdfApi.Services.Parsers;
+namespace QuoteMapper.Api.Services.Parsers;
 
 public sealed class QuotePromptBuilderFactory
 {

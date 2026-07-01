@@ -1,8 +1,9 @@
-﻿using System.Text;
+using System.Text;
 using System.Text.Encodings.Web;
-using MyPdfApi.Models;
+using QuoteMapper.Api.Interfaces;
+using QuoteMapper.Api.Models;
 
-namespace MyPdfApi.Services;
+namespace QuoteMapper.Api.Services;
 
 public sealed class QuoteTemplateRenderService : IQuoteTemplateRenderService
 {

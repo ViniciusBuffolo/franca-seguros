@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 
-namespace MyPdfApi.Models;
+namespace QuoteMapper.Api.Models;
 
 public sealed class ExtractTemplateHtmlRequest
 {

@@ -1,6 +1,6 @@
-﻿using MyPdfApi.Models;
+using QuoteMapper.Api.Models;
 
-namespace MyPdfApi.Services.Parsers;
+namespace QuoteMapper.Api.Services.Parsers;
 
 public interface IQuotePromptBuilder
 {

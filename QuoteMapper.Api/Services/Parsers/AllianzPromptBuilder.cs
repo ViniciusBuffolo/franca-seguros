@@ -1,5 +1,5 @@
-﻿using MyPdfApi.Models;
-using MyPdfApi.Services.Parsers;
+using QuoteMapper.Api.Models;
+using QuoteMapper.Api.Services.Parsers;
 
 namespace QuoteMapper.Api.Services.Parsers;
 

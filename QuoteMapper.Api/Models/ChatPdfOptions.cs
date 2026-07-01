@@ -1,4 +1,4 @@
-﻿namespace MyPdfApi.Models;
+namespace QuoteMapper.Api.Models;
 
 public sealed class ChatPdfOptions
 {

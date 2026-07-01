@@ -1,11 +1,12 @@
-﻿using System.Net.Http.Headers;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
-using MyPdfApi.Models;
+using QuoteMapper.Api.Interfaces;
+using QuoteMapper.Api.Models;
 
-namespace MyPdfApi.Services;
+namespace QuoteMapper.Api.Services;
 
 public sealed class ChatPdfService : IChatPdfService
 {

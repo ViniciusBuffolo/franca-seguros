@@ -1,6 +1,7 @@
-﻿using MyPdfApi.Models;
+using QuoteMapper.Api.Interfaces;
+using QuoteMapper.Api.Models;
 
-namespace MyPdfApi.Services;
+namespace QuoteMapper.Api.Services;
 
 public sealed class QuoteTemplateMapper : IQuoteTemplateMapper
 {
