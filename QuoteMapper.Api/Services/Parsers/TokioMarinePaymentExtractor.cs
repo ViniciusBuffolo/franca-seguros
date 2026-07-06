@@ -7,6 +7,25 @@ namespace QuoteMapper.Api.Services.Parsers;
 
 public static class TokioMarinePaymentExtractor
 {
+    private static readonly string[] DebitHeaders =
+    [
+        "Débito/Pix Aut.",
+        "Débito/Pix Aut",
+        "Debito/Pix Aut.",
+        "Debito/Pix Aut"
+    ];
+
+    private static readonly string[] FichaHeaders =
+    [
+        "Ficha"
+    ];
+
+    private static readonly string[] CardHeaders =
+    [
+        "Cartão",
+        "Cartao"
+    ];
+
     private static readonly Regex MoneyRegex = new(
         @"^(\d{1,3}(?:\.\d{3})*,\d{2}|\d{1,3},\d{2})",
         RegexOptions.Compiled);
@@ -18,19 +37,9 @@ public static class TokioMarinePaymentExtractor
     public static List<PaymentRowData> Extract(IFormFile file)
     {
         var pages = ExtractPages(file);
-        var debitAndFichaPage = pages.FirstOrDefault(page =>
-            page.Contains("Débito/Pix Aut.", StringComparison.OrdinalIgnoreCase) &&
-            page.Contains("Ficha", StringComparison.OrdinalIgnoreCase));
-
-        var cardPage = pages.FirstOrDefault(page =>
-            page.Contains("CartãoParcela", StringComparison.OrdinalIgnoreCase));
-
-        var debitAndFichaBlocks = FindInstallmentBlocks(debitAndFichaPage);
-        var cardBlocks = FindInstallmentBlocks(cardPage);
-
-        var debitRows = debitAndFichaBlocks.ElementAtOrDefault(0) ?? new List<TokioMarinePaymentRow>();
-        var fichaRows = debitAndFichaBlocks.ElementAtOrDefault(1) ?? new List<TokioMarinePaymentRow>();
-        var cardRows = cardBlocks.FirstOrDefault() ?? new List<TokioMarinePaymentRow>();
+        var debitRows = ExtractRowsByHeaders(pages, DebitHeaders, FichaHeaders, CardHeaders);
+        var fichaRows = ExtractRowsByHeaders(pages, FichaHeaders, DebitHeaders, CardHeaders);
+        var cardRows = ExtractRowsByHeaders(pages, CardHeaders, DebitHeaders, FichaHeaders);
 
         if (debitRows.Count == 0 && fichaRows.Count == 0 && cardRows.Count == 0)
             return new List<PaymentRowData>();
@@ -45,6 +54,87 @@ public static class TokioMarinePaymentExtractor
                 !string.IsNullOrWhiteSpace(row.Carne) ||
                 !string.IsNullOrWhiteSpace(row.CartaoCredito) ||
                 !string.IsNullOrWhiteSpace(row.DebitoConta))
+            .ToList();
+    }
+
+    private static List<TokioMarinePaymentRow> ExtractRowsByHeaders(
+        List<string> pages,
+        string[] targetHeaders,
+        params string[][] otherHeaderGroups)
+    {
+        var rowsByInstallment = new Dictionary<int, TokioMarinePaymentRow>();
+
+        foreach (var page in pages)
+        {
+            var section = TryExtractSection(page, targetHeaders, otherHeaderGroups);
+            if (string.IsNullOrWhiteSpace(section))
+                continue;
+
+            foreach (var row in MergeBlocks(FindInstallmentBlocks(section)))
+                rowsByInstallment[row.Installment] = row;
+        }
+
+        return rowsByInstallment.Values
+            .OrderBy(row => row.Installment)
+            .ToList();
+    }
+
+    private static string? TryExtractSection(
+        string pageText,
+        string[] targetHeaders,
+        params string[][] otherHeaderGroups)
+    {
+        if (string.IsNullOrWhiteSpace(pageText))
+            return null;
+
+        var start = FindFirstIndex(pageText, targetHeaders);
+        if (start < 0)
+            return null;
+
+        var end = pageText.Length;
+
+        foreach (var headerGroup in otherHeaderGroups)
+        {
+            var otherIndex = FindFirstIndex(pageText, headerGroup, start + 1);
+            if (otherIndex >= 0 && otherIndex < end)
+                end = otherIndex;
+        }
+
+        return pageText[start..end];
+    }
+
+    private static int FindFirstIndex(
+        string text,
+        string[] headers,
+        int startIndex = 0)
+    {
+        var index = -1;
+
+        foreach (var header in headers)
+        {
+            var current = text.IndexOf(header, startIndex, StringComparison.OrdinalIgnoreCase);
+            if (current < 0)
+                continue;
+
+            if (index < 0 || current < index)
+                index = current;
+        }
+
+        return index;
+    }
+
+    private static List<TokioMarinePaymentRow> MergeBlocks(List<List<TokioMarinePaymentRow>> blocks)
+    {
+        var rowsByInstallment = new Dictionary<int, TokioMarinePaymentRow>();
+
+        foreach (var block in blocks)
+        {
+            foreach (var row in block)
+                rowsByInstallment[row.Installment] = row;
+        }
+
+        return rowsByInstallment.Values
+            .OrderBy(row => row.Installment)
             .ToList();
     }
 

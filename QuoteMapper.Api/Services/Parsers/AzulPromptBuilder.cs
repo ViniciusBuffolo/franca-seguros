@@ -9,93 +9,87 @@ public sealed class AzulPromptBuilder : IQuotePromptBuilder
     public string BuildPrompt(CoverageType coverageType)
     {
         return """
-            Analise o documento PDF da cotação de seguro Azul e retorne SOMENTE um JSON válido.
+            Analise o documento PDF da cotacao de seguro Azul e retorne SOMENTE um JSON valido.
 
             REGRAS GERAIS:
-            - Leia todas as páginas do PDF.
-            - Retorne apenas JSON válido.
-            - Não escreva explicações.
-            - Não use markdown.
-            - Não use blocos de código.
-            - Não escreva nada antes ou depois do JSON.
-            - Se um campo não existir, retorne string vazia.
-            - Preserve os valores exatamente como aparecem no PDF, inclusive formato monetário, texto descritivo e percentuais.
-            - O PDF da Azul normalmente possui apenas um plano/orçamento principal. Não tente escolher entre planos Allianz.
-            - Ignore o parâmetro CoverageType para Azul.
+            - Leia todas as paginas do PDF.
+            - Retorne apenas JSON valido.
+            - Nao escreva explicacoes.
+            - Nao use markdown.
+            - Nao use blocos de codigo.
+            - Nao escreva nada antes ou depois do JSON.
+            - Se um campo nao existir, retorne string vazia.
+            - Preserve os valores exatamente como aparecem no PDF, inclusive formato monetario, texto descritivo e percentuais.
+            - O PDF da Azul normalmente possui apenas um plano/orcamento principal.
+            - Ignore o parametro CoverageType para Azul.
 
-            REGRAS DE IDENTIFICAÇÃO DOS DADOS PRINCIPAIS:
-            - proponente = nome do campo "Proponente / Segurado(a)".
-            - vehicle = descrição completa do veículo na seção "VEÍCULO".
+            REGRAS DE IDENTIFICACAO DOS DADOS PRINCIPAIS:
+            - proponente = nome do campo "Segurado(a)".
+            - vehicle = descricao completa do veiculo na secao "Veiculo".
             - plate = valor do campo "Placa".
-            - condutorPrincipal = valor após "Nome do principal Condutor:".
-            - usoVeiculo = valor após "Tipo do Uso:".
-            - cepPernoite = valor após "CEP PERNOITE:".
-            - estadoCivil = se não existir claramente, retorne string vazia.
-            - resideEm = se não existir claramente, retorne string vazia.
-            - condutores18a25 = se não existir claramente, retorne string vazia.
+            - IMPORTANTE: o campo "Placa" vem antes do "Chassi"; use somente a placa e nunca copie o chassi.
+            - condutorPrincipal = valor do condutor 1.
+            - usoVeiculo = valor do campo "Tipo de uso".
+            - cepPernoite = valor do campo "CEP de pernoite".
+            - estadoCivil = se nao existir claramente, retorne string vazia.
+            - resideEm = se nao existir claramente, retorne string vazia.
+            - condutores18a25 = se nao existir claramente, retorne string vazia.
+            - combustivel = valor do campo "Combustivel".
 
             REGRAS FIPE:
             - fipeCode = extrair o valor do campo "Fipe".
-            - No PDF Azul o código FIPE pode aparecer sem hífen, por exemplo "150908".
             - Preserve exatamente como aparece no PDF.
-            - anoModelo = extrair o segundo ano do campo "Ano Fabricação / Modelo".
-            - Exemplo: "2014 / 2014" => anoModelo = "2014".
+            - anoModelo = extrair o segundo ano do campo "Ano Fabricacao / Modelo".
+            - Exemplo: "2025 / 2025" => anoModelo = "2025".
             - fipeValue = sempre string vazia.
-            - NÃO extrair valores monetários para fipeCode.
-            - NÃO usar valores da tabela de cobertura como FIPE.
+            - NAO extrair valores monetarios para fipeCode.
+            - NAO usar valores da tabela de cobertura como FIPE.
 
             REGRAS DE COBERTURAS:
-            - danosMateriais = valor da linha "RCF-V DANOS MATERIAIS".
-            - danosCorporais = valor da linha "RCF-V DANOS CORPORAIS".
-            - danosMorais = valor da linha "DANOS MORAIS E ESTÉTICOS".
-            - appMorte = valor da linha "ACIDENTES PESSOAIS PASSAGEIROS".
-            - appInvalidez = valor da linha "ACIDENTES PESSOAIS PASSAGEIROS".
-            - assistenciaGuincho = valor textual da linha "ASSISTÊNCIA", por exemplo "ILIMITADA".
-            - carroReserva = extrair a quantidade de dias da linha "CARRO RESERVA", por exemplo "15 Dias".
-            - tipoCarroReserva = extrair o porte/tipo da linha "CARRO RESERVA", por exemplo "Básico".
-            - tipoFranquiaVeiculo = valor após "Franquia:", por exemplo "50% da Obrigatória".
-            - franquiaVeiculo = valor monetário da franquia do casco, se existir claramente. Se não existir, retorne string vazia.
+            - danosMateriais = valor de LMI da linha "RCF-V Danos Materiais".
+            - danosCorporais = valor de LMI da linha "RCF-V Danos Corporais".
+            - danosMorais = valor de LMI da linha "Danos Morais e Esteticos".
+            - appMorte = valor de LMI da linha "Acidentes Pessoais Passageiros".
+            - appInvalidez = valor de LMI da linha "Acidentes Pessoais Passageiros".
+            - IMPORTANTE: use o valor de LMI/indenizacao; nunca use "Valor do Premio" para preencher coberturas.
+            - assistenciaGuincho = valor textual da assistencia, por exemplo "ILIMITADA".
+            - carroReserva = extrair a quantidade de dias da linha "Carro reserva", se existir claramente.
+            - tipoCarroReserva = extrair o porte/tipo da linha "Carro reserva", se existir claramente.
+            - tipoFranquiaVeiculo = texto entre parenteses da franquia da cobertura compreensiva, por exemplo "25% da Obrigatoria".
+            - franquiaVeiculo = valor monetario da franquia da cobertura compreensiva.
 
             REGRAS DE FRANQUIAS:
             - franquiaParabrisa = valor de "Vidros (Para-Brisa e Traseiro)".
             - franquiaVidroLateral = valor de "Vidros Laterais".
-            - franquiaFarolConvencional = valor de "Faróis/Lanternas".
-            - franquiaLanternaConvencional = valor de "Faróis/Lanternas".
-            - franquiaFarolXenonLed = valor de "Faróis de Xenônio".
+            - franquiaFarolConvencional = valor de "Farois/Lanternas".
+            - franquiaLanternaConvencional = valor de "Farois/Lanternas".
+            - franquiaFarolXenonLed = valor de "Farois de Xenonio".
             - franquiaLanternaLed = valor de "Lanternas de LED".
             - franquiaRetrovisor = valor de "Retrovisores".
-            - franquiaLanternaAuxiliar = se não existir claramente, retorne string vazia.
-            - franquiaPneuRoda = valor de "Roda, Pneu e Suspensão".
-            - franquiaPequenosReparos = valor de "Reparo Rápido".
+            - franquiaLanternaAuxiliar = se nao existir claramente, retorne string vazia.
+            - franquiaPneuRoda = se nao existir claramente, retorne string vazia.
+            - franquiaPequenosReparos = se nao existir claramente, retorne string vazia.
 
             REGRAS DE FORMAS DE PAGAMENTO:
-            - Procure as seções "FORMAS DE PAGAMENTO".
-            - O PDF Azul possui tabelas como:
-              - "TODAS CARTÃO DE CRÉDITO PORTO BANK (AQUISIÇÃO)"
-              - "TODAS CARTÃO DE CRÉDITO PORTO BANK SEM DESCONTO (OUTRO TITULAR)"
-              - "TODAS CARTÃO DE CRÉDITO - DEMAIS BANDEIRAS"
-              - "TODAS DÉBITO C. CORRENTE"
-              - "1 BOLETO / DEMAIS CARNÊ"
-              - "1 BOLETO / DEMAIS C. CORRENTE"
-              - "1 DEBITO C. CORRENTE / DEMAIS CARNÊ"
-            - Para cartaoCredito, prefira a tabela "TODAS CARTÃO DE CRÉDITO - DEMAIS BANDEIRAS".
-            - Se ela não estiver completa, use "TODAS CARTÃO DE CRÉDITO PORTO BANK SEM DESCONTO (OUTRO TITULAR)".
-            - Para debitoConta, use a tabela "TODAS DÉBITO C. CORRENTE" ou "1 DEBITO C. CORRENTE / DEMAIS CARNÊ".
-            - Para carne, use a tabela "1 BOLETO / DEMAIS CARNÊ" ou "1 BOLETO / DEMAIS C. CORRENTE".
-            - Monte uma linha para cada parcela de 1x até 12x encontrada.
+            - Procure a secao "Formas de pagamento".
+            - Para cartaoCredito, use a tabela "TODAS CARTAO DE CREDITO - DEMAIS BANDEIRAS".
+            - Para debitoConta, use a tabela "TODAS DEBITO C. CORRENTE".
+            - Para carne, use a tabela "1 BOLETO / DEMAIS CARNE".
+            - Ignore outras tabelas alternativas se a tabela principal correspondente estiver completa.
+            - Monte uma linha para cada parcela de 1x ate 12x encontrada.
             - No campo parcela, use "01", "02", "03" ... "12".
             - Se a parcela aparecer como "-", retorne string vazia no valor correspondente.
-            - Se uma forma de pagamento não existir para uma parcela, retorne string vazia.
-            - Preserve os valores exatamente como aparecem, por exemplo "R$ 1.749,32".
-            - Não inclua texto de juros dentro do valor. O valor deve ser apenas o valor monetário da parcela.
+            - Se uma forma de pagamento nao existir para uma parcela, retorne string vazia.
+            - Preserve os valores exatamente como aparecem, por exemplo "R$ 1.555,01".
+            - Nao inclua texto de juros dentro do valor. O valor deve ser apenas o valor monetario da parcela.
 
             REGRAS DE DESTAQUE DE JUROS:
             - Se abaixo do valor estiver escrito "(s/juros)" ou "s/juros", marque o booleano correspondente como true.
-            - Se estiver escrito "juros", marque como false.
+            - Se houver texto "juros" sem "s/juros", marque como false.
             - Se o valor estiver vazio ou "-", marque como false.
-            - carneSemJuros corresponde à tabela de boleto/carnê.
-            - cartaoCreditoSemJuros corresponde à tabela de cartão de crédito.
-            - debitoContaSemJuros corresponde à tabela de débito em conta.
+            - carneSemJuros corresponde a tabela de boleto/carne.
+            - cartaoCreditoSemJuros corresponde a tabela de cartao de credito.
+            - debitoContaSemJuros corresponde a tabela de debito em conta.
 
             Retorne exatamente nesta estrutura:
 
@@ -132,6 +126,7 @@ public sealed class AzulPromptBuilder : IQuotePromptBuilder
               "cepPernoite": "",
               "resideEm": "",
               "condutores18a25": "",
+              "combustivel": "",
               "paymentRows": [
                 {
                   "parcela": "",
@@ -146,10 +141,10 @@ public sealed class AzulPromptBuilder : IQuotePromptBuilder
             }
 
             REGRAS FINAIS:
-            1. Use somente dados da cotação Azul.
-            2. Não invente valores.
-            3. Não misture valores de tabelas diferentes sem respeitar carne, cartão e débito.
-            4. Retorne somente JSON válido.
+            1. Use somente dados da cotacao Azul.
+            2. Nao invente valores.
+            3. Nao misture valores de tabelas diferentes sem respeitar carne, cartao e debito.
+            4. Retorne somente JSON valido.
             """;
     }
 }

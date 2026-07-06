@@ -57,6 +57,9 @@ public sealed class PdfExtractionController : ControllerBase
             extracted.Insurer = request.Insurer;
 
             TryFillTokioMarinePaymentRows(request.File, request.Insurer, extracted);
+            TryFillYelumFields(request.File, request.Insurer, extracted);
+            TryFillBanestesFields(request.File, request.Insurer, extracted);
+            TryFillAzulFields(request.File, request.Insurer, extracted);
 
             await TryFillFipeValueAsync(extracted, cancellationToken);
 
@@ -87,6 +90,39 @@ public sealed class PdfExtractionController : ControllerBase
 
         if (paymentRows.Count > 0)
             extracted.PaymentRows = paymentRows;
+    }
+
+    private static void TryFillYelumFields(
+        IFormFile file,
+        string? insurer,
+        QuoteTemplateExtractionResult extracted)
+    {
+        if (!IsYelum(insurer))
+            return;
+
+        YelumQuoteExtractor.Fill(file, extracted);
+    }
+
+    private static void TryFillBanestesFields(
+        IFormFile file,
+        string? insurer,
+        QuoteTemplateExtractionResult extracted)
+    {
+        if (!IsBanestes(insurer))
+            return;
+
+        BanestesQuoteExtractor.Fill(file, extracted);
+    }
+
+    private static void TryFillAzulFields(
+        IFormFile file,
+        string? insurer,
+        QuoteTemplateExtractionResult extracted)
+    {
+        if (!IsAzul(insurer))
+            return;
+
+        AzulQuoteExtractor.Fill(file, extracted);
     }
 
     private async Task TryFillFipeValueAsync(
@@ -150,6 +186,21 @@ public sealed class PdfExtractionController : ControllerBase
             .Trim();
 
         return normalized.Equals("TokioMarine", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsYelum(string? insurer)
+    {
+        return string.Equals((insurer ?? string.Empty).Trim(), "Yelum", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsBanestes(string? insurer)
+    {
+        return string.Equals((insurer ?? string.Empty).Trim(), "Banestes", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsAzul(string? insurer)
+    {
+        return string.Equals((insurer ?? string.Empty).Trim(), "Azul", StringComparison.OrdinalIgnoreCase);
     }
 
 }

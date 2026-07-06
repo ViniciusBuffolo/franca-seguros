@@ -109,14 +109,28 @@ public sealed class QuoteTemplateMapper : IQuoteTemplateMapper
 
     private static void ApplyInsurerPaymentRules(string? insurer, List<PaymentRowData> paymentRows)
     {
-        if (!IsItau(insurer))
+        if (IsItau(insurer))
+        {
+            foreach (var row in paymentRows)
+            {
+                var parcela = ParseParcela(row.Parcela);
+
+                row.CarneSemJuros = parcela is >= 1 and <= 4 && HasPaymentValue(row.Carne);
+                row.DebitoContaSemJuros = parcela is >= 1 and <= 10 && HasPaymentValue(row.DebitoConta);
+            }
+
+            return;
+        }
+
+        if (!IsBanestes(insurer))
             return;
 
         foreach (var row in paymentRows)
         {
             var parcela = ParseParcela(row.Parcela);
 
-            row.CarneSemJuros = parcela is >= 1 and <= 4 && HasPaymentValue(row.Carne);
+            row.CarneSemJuros = parcela is >= 1 and <= 10 && HasPaymentValue(row.Carne);
+            row.CartaoCreditoSemJuros = parcela is >= 1 and <= 10 && HasPaymentValue(row.CartaoCredito);
             row.DebitoContaSemJuros = parcela is >= 1 and <= 10 && HasPaymentValue(row.DebitoConta);
         }
     }
@@ -128,6 +142,15 @@ public sealed class QuoteTemplateMapper : IQuoteTemplateMapper
             .ToLowerInvariant();
 
         return normalized == "itau" || normalized.StartsWith("ita");
+    }
+
+    private static bool IsBanestes(string? insurer)
+    {
+        var normalized = RemoveDiacritics(insurer ?? string.Empty)
+            .Trim()
+            .ToLowerInvariant();
+
+        return normalized == "banestes";
     }
 
     private static string RemoveDiacritics(string value)

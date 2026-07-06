@@ -10,45 +10,48 @@ public sealed class YelumPromptBuilder : IQuotePromptBuilder
     public string BuildPrompt(CoverageType coverageType)
     {
         return """
-            Analise o documento PDF da cotação de seguro Yelum e retorne SOMENTE um JSON válido.
+            Analise o documento PDF da cotacao de seguro Yelum e retorne SOMENTE um JSON valido.
 
             REGRAS GERAIS:
-            - Leia todas as páginas do PDF.
-            - Retorne apenas JSON válido.
-            - Não escreva explicações.
-            - Não use markdown.
+            - Leia todas as paginas do PDF.
+            - Retorne apenas JSON valido.
+            - Nao escreva explicacoes.
+            - Nao use markdown.
             - Preserve os valores exatamente como aparecem no PDF.
-            - O PDF Yelum normalmente possui apenas um plano/orçamento principal.
-            - Ignore o parâmetro CoverageType para Yelum.
+            - O PDF Yelum normalmente possui apenas um plano/orcamento principal.
+            - Ignore o parametro CoverageType para Yelum.
 
-            REGRAS DE IDENTIFICAÇÃO DOS DADOS PRINCIPAIS:
+            REGRAS DE IDENTIFICACAO DOS DADOS PRINCIPAIS:
             - proponente = valor de "Nome do Segurado(a)".
-            - vehicle = valor de "Marca/Tipo do Veículo".
+            - vehicle = valor de "Marca/Tipo do Veiculo".
             - plate = valor de "Placa".
             - condutorPrincipal = valor de "Nome do Principal Condutor".
-            - usoVeiculo = valor de "Utilização" ou "Uso do Veículo".
+            - usoVeiculo = valor de "Utilizacao" ou "Uso do Veiculo".
             - estadoCivil = valor de "Estado Civil".
             - cepPernoite = valor de "CEP de Pernoite".
-            - resideEm = se não existir claramente, retorne string vazia.
-            - condutores18a25 = valor de "Residente 18/24 anos" ou "Deseja estender cobertura p/ residentes habilitados com idade 18 a 24 anos?".
+            - resideEm = se nao existir claramente, retorne string vazia.
+            - condutores18a25 = valor de "Residente 18/24 anos".
+            - combustivel = texto entre parenteses no veiculo, por exemplo "Flex", "Gasolina" ou "Diesel".
 
             REGRAS FIPE:
-            - fipeCode = valor de "Código FIPE".
-            - anoModelo = segundo ano de "Ano Fabricação/Modelo".
+            - fipeCode = valor de "Codigo FIPE".
+            - anoModelo = segundo ano de "Ano Fabricacao/Modelo".
             - Exemplo: "2014/2014" => anoModelo = "2014".
             - fipeValue = sempre string vazia.
 
             REGRAS DE COBERTURAS:
-            - danosMateriais = valor de "RESP CIVIL FACULTATIVA VEÍCULOS - DANOS MATERIAIS".
-            - danosCorporais = valor de "RESP CIVIL FACULTATIVA VEÍCULOS - DANOS CORPORAIS".
-            - danosMorais = valor de "RESP CIVIL FACULTATIVA VEÍCULOS - DANOS MORAIS E ESTÉTICOS".
+            - danosMateriais = valor de "RESP CIVIL FACULTATIVA VEICULOS - DANOS MATERIAIS".
+            - danosCorporais = valor de "RESP CIVIL FACULTATIVA VEICULOS - DANOS CORPORAIS".
+            - danosMorais = valor de "RESP CIVIL FACULTATIVA VEICULOS - DANOS MORAIS E ESTETICOS".
             - appMorte = valor de "ACIDENTES PESSOAIS PASSAGEIROS - LMI POR PASSAGEIRO - MORTE".
             - appInvalidez = valor de "ACIDENTES PESSOAIS PASSAGEIROS - LMI POR PASSAGEIRO - INVALIDEZ PERMANENTE".
-            - assistenciaGuincho = valor de "ASSISTENCIA", por exemplo "SUPERIOR".
+            - IMPORTANTE: nessas linhas use o valor de LMI/R$ da cobertura, nunca o premio e nunca a franquia.
+            - assistenciaGuincho = valor de "ASSISTENCIA", por exemplo "INTERMEDIARIO" ou "SUPERIOR".
             - carroReserva = extraia a quantidade de dias de "CARRO RESERVA", por exemplo "15 DIAS".
-            - tipoCarroReserva = extraia o tipo de "CARRO RESERVA", por exemplo "BÁSICO COM AR".
-            - franquiaVeiculo = valor da franquia da cobertura "BASICA - 01-COMPREENSIVA".
-            - tipoFranquiaVeiculo = valor de "Tipo de Franquia", por exemplo "0.5 - FACULTATIVA".
+            - tipoCarroReserva = extraia o tipo de "CARRO RESERVA", por exemplo "BASICO COM AR".
+            - franquiaVeiculo = valor monetario da franquia da cobertura "BASICA - 01-COMPREENSIVA".
+            - tipoFranquiaVeiculo = valor de "Tipo de Franquia", por exemplo "0,5 - FACULTATIVA".
+            - IMPORTANTE: na linha "BASICA - 01-COMPREENSIVA", franquiaVeiculo deve ser o valor monetario da franquia, nao o percentual/tipo.
 
             REGRAS DE FRANQUIAS:
             - franquiaParabrisa = valor de "Para-brisa".
@@ -58,35 +61,38 @@ public sealed class YelumPromptBuilder : IQuotePromptBuilder
             - franquiaFarolXenonLed = valor de "Farois de LED ou Xenon".
             - franquiaLanternaLed = valor de "Lanternas LED".
             - franquiaRetrovisor = valor de "Retrovisores".
-            - franquiaLanternaAuxiliar = se não existir claramente, retorne string vazia.
-            - franquiaPneuRoda = valor de "Protecao de Roda e Pneu", por exemplo "R$120,00".
+            - franquiaLanternaAuxiliar = valor de "Farol Auxiliar"; se nao existir claramente, retorne string vazia.
+            - franquiaPneuRoda = valor de "Protecao de Roda e Pneu", se existir claramente.
             - franquiaPequenosReparos = valor de "PROTECAO PEQUENOS REPAROS".
+            - IMPORTANTE: para vidros e pequenos reparos, use os valores de franquia descritos em "INFORMACOES COMPLEMENTARES", nao o premio da cobertura.
 
             REGRAS DE FORMAS DE PAGAMENTO:
-            - Procure a seção "FORMA DE PAGAMENTO".
+            - Procure a secao "FORMA DE PAGAMENTO".
             - Existem colunas:
-              1. CARNÊ
-              2. DÉBITO C/C
-              3. CARTÃO DE CRÉDITO
+              1. CARNE
+              2. DEBITO C/C
+              3. CARTAO DE CREDITO
               4. QR Code PIX
-            - Para carne, use a coluna "CARNÊ".
-            - Para debitoConta, use a coluna "DÉBITO C/C".
-            - Para cartaoCredito, use a coluna "CARTÃO DE CRÉDITO".
+            - Para carne, use a coluna "CARNE".
+            - Para debitoConta, use a coluna "DEBITO C/C".
+            - Para cartaoCredito, use a coluna "CARTAO DE CREDITO".
             - Ignore a coluna "QR Code PIX".
             - Use somente os valores de parcela.
             - No campo parcela, converta:
-              - "À vista" = "01"
+              - "A vista" = "01"
               - "1 + 1" = "02"
               - "1 + 2" = "03"
               - "1 + 3" = "04"
-              - até "1 + 11" = "12"
+              - ate "1 + 11" = "12"
             - Preserve os valores exatamente como aparecem.
             - Se o valor vier sem "R$", adicione "R$ " antes do valor.
-            - Se uma forma de pagamento não tiver valor para a parcela, retorne string vazia.
+            - Se uma forma de pagamento nao tiver valor para a parcela, retorne string vazia.
+            - IMPORTANTE: a ordem correta das colunas e CARNE, DEBITO C/C, CARTAO DE CREDITO, QR Code PIX.
+            - IMPORTANTE: debitoConta deve usar a coluna DEBITO C/C e cartaoCredito deve usar a coluna CARTAO DE CREDITO.
 
             REGRAS DE DESTAQUE DE JUROS:
-            - Se não houver indicação clara de juros na linha, marque o booleano como true quando houver valor.
-            - Se houver indicação de juros maior que zero, marque como false.
+            - Se nao houver indicacao clara de juros na linha, marque o booleano como true quando houver valor.
+            - Se houver indicacao de juros maior que zero, marque como false.
             - Se o valor estiver vazio, marque como false.
 
             Retorne exatamente nesta estrutura:
@@ -124,6 +130,7 @@ public sealed class YelumPromptBuilder : IQuotePromptBuilder
               "cepPernoite": "",
               "resideEm": "",
               "condutores18a25": "",
+              "combustivel": "",
               "paymentRows": [
                 {
                   "parcela": "",
@@ -138,10 +145,10 @@ public sealed class YelumPromptBuilder : IQuotePromptBuilder
             }
 
             REGRAS FINAIS:
-            1. Use somente dados da cotação Yelum.
-            2. Não invente valores.
-            3. Não use a coluna "QR Code PIX".
-            4. Retorne somente JSON válido.
+            1. Use somente dados da cotacao Yelum.
+            2. Nao invente valores.
+            3. Nao use a coluna "QR Code PIX".
+            4. Retorne somente JSON valido.
             """;
     }
 }
